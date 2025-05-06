@@ -21,7 +21,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F9FF),
+      backgroundColor: const Color(0xFFF0F7FD),
       body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(
@@ -30,10 +30,10 @@ class _LoginScreenState extends State<LoginScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 const SizedBox(
-                  height: 150,
+                  height: 130,
                 ), // Increased space to push down content
                 _buildIllustration(),
-                const SizedBox(height: 20),
+                const SizedBox(height: 40),
                 _buildLoginHeader(),
                 const SizedBox(height: 30),
                 _buildLoginForm(),
@@ -66,17 +66,17 @@ class _LoginScreenState extends State<LoginScreen> {
           'LOGIN',
           style: TextStyle(
             fontSize: 25,
-            fontWeight: FontWeight.bold,
+            fontWeight: FontWeight.w900,
             color: Color(0xFF2C7DA0),
           ),
         ),
         SizedBox(height: 6),
         Text(
-          'Login to unlock your driving companion',
+         'Login to unlock your driving\ncompanion',
           style: TextStyle(
             fontSize: 15,
             color: Color(0xFF116692),
-            fontWeight: FontWeight.w400,
+            fontWeight: FontWeight.w500,
           ),
           textAlign: TextAlign.center,
         ),
@@ -92,7 +92,7 @@ class _LoginScreenState extends State<LoginScreen> {
           'Email*',
           style: TextStyle(
             fontSize: 14,
-            color: Color(0xFF61879D),
+            color: Color(0xFF116692),
             fontWeight: FontWeight.w400,
           ),
         ),
@@ -118,7 +118,7 @@ class _LoginScreenState extends State<LoginScreen> {
           'Password*',
           style: TextStyle(
             fontSize: 14,
-            color: Color(0xFF61879D),
+            color: Color(0xFF116692),
             fontWeight: FontWeight.w400,
           ),
         ),
