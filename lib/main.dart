@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import 'package:parking_system/screens/login_screen.dart';
 
 
@@ -14,6 +15,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
        home:  LoginScreen(),
+
     );
   }
 }

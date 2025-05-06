@@ -1,13 +1,32 @@
 import 'package:flutter/material.dart';
 
-
-class IntroScreen extends StatelessWidget {
+class IntroScreen extends StatefulWidget {
   const IntroScreen({super.key});
 
   @override
+  State<IntroScreen> createState() => _IntroScreenState();
+}
+
+class _IntroScreenState extends State<IntroScreen> {
+  final PageController _descriptionController = PageController();
+  int _currentDescriptionPage = 0;
+
+  final List<String> _descriptions = [
+    'We created this app to make your vehicle experience easier, smarter, and more connected whether you\'re managing maintenance, exploring new roads, or just staying informed.',
+    'Keep your vehicle in top shape with easy-to-use maintenance tracking and timely reminders for service appointments.',
+    'Find the best routes, avoid traffic, and discover new places with our smart navigation features.',
+    'Monitor your vehicle\'s performance, fuel efficiency, and get real-time diagnostics right from your phone.',
+  ];
+
+  @override
+  void dispose() {
+    _descriptionController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final Color mainColor = Color(0xFF116692);
-    
+    final Color mainColor = const Color(0xFF116692);
     return Scaffold(
       backgroundColor: mainColor,
       body: SafeArea(
@@ -26,12 +45,10 @@ class IntroScreen extends StatelessWidget {
                     'assets/images/in.png',
                     fit: BoxFit.contain,
                   ),
-                  // ),
                 ),
               ),
-              const Spacer(flex: 1),
               // Text content
-              Text(
+              const Text(
                 'Ready to upgrade your driving experience?',
                 textAlign: TextAlign.center,
                 style: TextStyle(
@@ -40,34 +57,52 @@ class IntroScreen extends StatelessWidget {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              const SizedBox(height: 16),
-              Text(
-                'We created this app to make your vehicle experience easier, smarter, and more connected whether you\'re managing maintenance, exploring new roads, or just staying informed.',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.9),
-                  fontSize: 14,
+              const SizedBox(height: 15),
+              SizedBox(
+                height: 80, // Fixed height for description area
+                child: PageView.builder(
+                  controller: _descriptionController,
+                  itemCount: _descriptions.length,
+                  onPageChanged: (index) {
+                    setState(() {
+                      _currentDescriptionPage = index;
+                    });
+                  },
+                  itemBuilder: (context, index) {
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                      child: Text(
+                        _descriptions[index],
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.9),
+                          fontSize: 14,
+                        ),
+                      ),
+                    );
+                  },
                 ),
               ),
-              const SizedBox(height: 24),
-              // Pagination dots
+              SizedBox(height: 20),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: List.generate(
-                  4,
+                  _descriptions.length,
                   (index) => Container(
                     margin: const EdgeInsets.symmetric(horizontal: 4),
                     width: 8,
                     height: 8,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: index == 0 ? Colors.white : Colors.white.withValues(alpha: 0.4),
+                      color:
+                          index == _currentDescriptionPage
+                              ? Colors.white
+                              : Colors.white.withValues(alpha: 0.4),
                     ),
                   ),
                 ),
               ),
-              const SizedBox(height: 32),
-              // Get Started button
+              SizedBox(height: 40),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
@@ -82,10 +117,7 @@ class IntroScreen extends StatelessWidget {
                   ),
                   child: const Text(
                     'Get Started',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                 ),
               ),
@@ -93,12 +125,9 @@ class IntroScreen extends StatelessWidget {
               // Login text
               TextButton(
                 onPressed: () {},
-                child: Text(
+                child: const Text(
                   'already have account? Login',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 14,
-                  ),
+                  style: TextStyle(color: Colors.white, fontSize: 14),
                 ),
               ),
               const SizedBox(height: 24),
