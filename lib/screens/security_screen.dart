@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:parking_system/screens/camera_screen.dart';
 
 class SecurityScreen extends StatefulWidget {
   const SecurityScreen({super.key});
@@ -162,44 +163,55 @@ class _SecurityScreenState extends State<SecurityScreen> {
       child: Column(
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'PSE PARKING SYSTEM',
-                    style: TextStyle(
-                      color: Color(0xFF0277BD),
-                      fontWeight: FontWeight.bold,
-                      fontSize: 18,
-                      letterSpacing: 0.5,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Manage your parking in easy way!',
-                    style: TextStyle(
-                      fontSize: 15,
-                      color: Colors.grey.shade600,
-                      letterSpacing: 0.2,
-                    ),
-                  ),
-                ],
-              ),
-              Container(
-                padding: const EdgeInsets.all(8),
-                child: SizedBox(
-                  width: 40,
-                  height: 40,
-                  child: Image.asset(
-                    'assets/images/camera.png',
-                    fit: BoxFit.contain,
-                  ),
-                ),
-              ),
-            ],
+  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  children: [
+    Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'PSE PARKING SYSTEM',
+          style: TextStyle(
+            color: Color(0xFF0277BD),
+            fontWeight: FontWeight.bold,
+            fontSize: 18,
+            letterSpacing: 0.5,
           ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          'Manage your parking in easy way!',
+          style: TextStyle(
+            fontSize: 15,
+            color: Colors.grey.shade600,
+            letterSpacing: 0.2,
+          ),
+        ),
+      ],
+    ),
+    GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => QRScannerScreen(), // 👈 this screen contains the scanner
+          ),
+        );
+      },
+      child: Container(
+        padding: const EdgeInsets.all(8),
+        child: SizedBox(
+          width: 40,
+          height: 40,
+          child: Image.asset(
+            'assets/images/camera.png',
+            fit: BoxFit.contain,
+          ),
+        ),
+      ),
+    ),
+  ],
+),
+
           const SizedBox(height: 25),
           _buildSearchBar(),
           const SizedBox(height: 25),
