@@ -56,7 +56,7 @@ class ProfileScreen extends StatelessWidget {
                       border: Border.all(color: const Color.fromARGB(255, 9, 97, 179)),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    padding: const EdgeInsets.fromLTRB(24, , 16, 16),
+                    padding: const EdgeInsets.fromLTRB(24, 16, 16, 16),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
