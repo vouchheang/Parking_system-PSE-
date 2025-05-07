@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
 void main() {
-  runApp(const ParkingPassApp());
+  runApp(const HomeScreen());
 }
 
-class ParkingPassApp extends StatelessWidget {
-  const ParkingPassApp({Key? key}) : super(key: key);
+class HomeScreen extends StatelessWidget {
+  const HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
