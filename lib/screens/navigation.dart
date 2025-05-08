@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:parking_system/screens/activities_screen.dart';
+import 'package:parking_system/screens/history_screen.dart';
 import 'package:parking_system/screens/dashboard_screen.dart';
-import 'package:parking_system/screens/security_screen.dart';
+import 'package:parking_system/screens/inspect_screen.dart';
 
 class NavigationScreen extends StatefulWidget {
   const NavigationScreen({super.key});

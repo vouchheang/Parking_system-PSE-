@@ -11,8 +11,6 @@ class HistoryScreen extends StatefulWidget {
 
 class _HistoryScreenState extends State<HistoryScreen> {
   final List<Map<String, dynamic>> _recentActivity = [
-    {"name": "Mom Vouchheang", "action": "New register", "time": "7:00 PM"},
-    {"name": "Thorn Thearith", "action": "Checkout", "time": "7:00 PM"},
     {"name": "Vann Tiang", "action": "New register", "time": "7:00 PM"},
     {"name": "Sang In", "action": "New register", "time": "7:00 PM"},
     {"name": "Mom Vouchheang", "action": "New register", "time": "7:00 PM"},
@@ -66,13 +64,13 @@ class _HistoryScreenState extends State<HistoryScreen> {
       child: Row(
         children: [
           Expanded(
-            flex: 2,
+            flex: 3,
             child: Padding(
               padding: const EdgeInsets.only(left: 8),
               child: Text('Name', style: headerStyle),
             ),
           ),
-          Expanded(flex: 1, child: Text('Action', style: headerStyle)),
+          Expanded(flex: 3, child: Text('Action', style: headerStyle)),
           Expanded(flex: 1, child: Text('Time', style: headerStyle)),
         ],
       ),

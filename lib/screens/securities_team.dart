@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
 
-class SecuritiesTeam extends StatelessWidget {
-  SecuritiesTeam({super.key});
+class SecuritiesTeam extends StatefulWidget {
+  const SecuritiesTeam({super.key});
 
+  @override
+  State<SecuritiesTeam> createState() => _SecuritiesTeamState();
+}
+
+class _SecuritiesTeamState extends State<SecuritiesTeam> {
   static const Color primaryBlue = Color(0xFF1A5F9C);
   static const Color primaryOrange = Color(0xFFFF8A00);
   static const Color primaryGreen = Color(0xFF2E8B57);
@@ -26,12 +31,111 @@ class SecuritiesTeam extends StatelessWidget {
     {'name': 'Seng In', 'date': '21192-1', 'status': 'Inactive'},
   ];
 
+  // Form controllers
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _idController = TextEditingController();
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _idController.dispose();
+    super.dispose();
+  }
+
+  void _showAddSecurityForm() {
+    // Reset form values
+    _nameController.clear();
+    _idController.clear();
+
+    showDialog(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            title: const Text(
+              'Add New Security',
+              style: TextStyle(color: primaryBlue, fontWeight: FontWeight.bold),
+            ),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: _nameController,
+                    decoration: const InputDecoration(
+                      labelText: 'Name',
+                      labelStyle: TextStyle(color: textLight),
+                      focusedBorder: UnderlineInputBorder(
+                        borderSide: BorderSide(color: primaryBlue),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: _idController,
+                    decoration: const InputDecoration(
+                      labelText: 'ID',
+                      labelStyle: TextStyle(color: textLight),
+                      focusedBorder: UnderlineInputBorder(
+                        borderSide: BorderSide(color: primaryBlue),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  const Row(
+                    children: [
+                      Icon(Icons.info_outline, color: primaryOrange, size: 16),
+                      SizedBox(width: 8),
+                      Text(
+                        'Status will be set to Active',
+                        style: TextStyle(
+                          color: textLight,
+                          fontStyle: FontStyle.italic,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Cancel', style: TextStyle(color: textLight)),
+              ),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(backgroundColor: primaryBlue),
+                onPressed: () {
+                  if (_nameController.text.isNotEmpty &&
+                      _idController.text.isNotEmpty) {
+                    setState(() {
+                      attendanceRecords.add({
+                        'name': _nameController.text,
+                        'date': _idController.text,
+                        'status': 'Active',
+                      });
+                    });
+                    Navigator.pop(context);
+                  }
+                },
+                child: const Text(
+                  'Add',
+                  style: TextStyle(
+                    color: Colors.white,
+                  ), 
+                ),
+              ),
+            ],
+          ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          'Secutities Team',
+          'Securities Team',
           style: TextStyle(color: primaryBlue, fontWeight: FontWeight.bold),
         ),
         backgroundColor: Colors.white,
@@ -71,7 +175,7 @@ class SecuritiesTeam extends StatelessWidget {
       ),
       floatingActionButton: FloatingActionButton(
         backgroundColor: primaryBlue,
-        onPressed: () {},
+        onPressed: _showAddSecurityForm,
         child: const Icon(Icons.add, color: Colors.white),
       ),
     );
