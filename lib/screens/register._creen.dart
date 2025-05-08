@@ -3,7 +3,7 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 
 class ParkingRegistrationScreen extends StatefulWidget {
-  const ParkingRegistrationScreen({Key? key}) : super(key: key);
+  const ParkingRegistrationScreen({super.key});
 
   @override
   State<ParkingRegistrationScreen> createState() => _ParkingRegistrationScreenState();
