@@ -300,7 +300,9 @@ class SecurityList extends StatelessWidget {
   final List<Map<String, String>> securities = [
     {'name': 'Nguon Chetsavyit', 'id': '21192-1', 'status': 'Active'},
     {'name': 'Mom Vouchheang', 'id': '21192-1', 'status': 'Active'},
-    {'name': 'Seng In', 'id': '21192-1', 'status': 'Inactive'}];
+    {'name': 'Seng In', 'id': '21192-1', 'status': 'Inactive'},
+    {'name': 'Mom Vouchheang', 'id': '21192-1', 'status': 'Active'},
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -347,73 +349,75 @@ class SecurityList extends StatelessWidget {
     );
   }
 
- Widget _buildSecurityItem(Map<String, String> security) {
-  final bool isActive = security['status'] == 'Active';
-  final Color statusColor = isActive ? const Color(0xFFF9A826) : const Color(0xFF4CAF50);
-  
-  return Padding(
-    padding: const EdgeInsets.symmetric(vertical: 10.0),
-    child: Row(
-      children: [
-        Container(
-          width: 40,
-          height: 40,
-          decoration: BoxDecoration(
-            color: const Color(0xFFE3F2FD),
-            shape: BoxShape.circle,
+  Widget _buildSecurityItem(Map<String, String> security) {
+    final bool isActive = security['status'] == 'Active';
+    final Color statusColor =
+        isActive ? const Color(0xFFF9A826) : const Color(0xFF4CAF50);
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10.0),
+      child: Row(
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: const Color(0xFFE3F2FD),
+              shape: BoxShape.circle,
+            ),
+            child: Center(
+              child: Text(
+                security['name']![0],
+                style: TextStyle(
+                  color: Color(0xFF2196F3),
+                  fontWeight: FontWeight.w600,
+                  fontSize: 16,
+                ),
+              ),
+            ),
           ),
-          child: Center(
+          const SizedBox(width: 12),
+          Expanded(
+            flex: 3,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  security['name']!,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w500,
+                    color: Color(0xFF212121),
+                  ),
+                ),
+                Text(
+                  security['id']!,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    color: Color(0xFF757575),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 6),
+            decoration: BoxDecoration(
+              color: statusColor.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: statusColor),
+            ),
             child: Text(
-              security['name']![0],
+              security['status']!,
               style: TextStyle(
-                color: Color(0xFF2196F3),
-                fontWeight: FontWeight.w600,
-                fontSize: 16,
+                color: statusColor,
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
               ),
             ),
           ),
-        ),
-        const SizedBox(width: 12),
-              Expanded(
-          flex: 3,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                security['name']!,
-                style: const TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w500,
-                  color: Color(0xFF212121),
-                ),
-              ),
-              Text(
-                security['id']!,
-                style: const TextStyle(
-                  fontSize: 13,
-                  color: Color(0xFF757575),
-                ),
-              ),
-            ],
-          ),
-        ),
-        Container(
-           padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 6),
-              decoration: BoxDecoration(
-                color: statusColor.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: statusColor),
-              ),
-          child: Text(
-            security['status']!,
-            style: TextStyle(
-              color: statusColor,
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ),
-      ],
-    ),
-  );
-}}
+        ],
+      ),
+    );
+  }
+}

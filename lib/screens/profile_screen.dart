@@ -11,7 +11,6 @@ class ProfileScreen extends StatelessWidget {
           SingleChildScrollView(
             child: Column(
               children: [
-                // Header with more height
                 Container(
                   color: const Color(0xFF116692),
                   width: double.infinity,
@@ -22,15 +21,14 @@ class ProfileScreen extends StatelessWidget {
                         'Profile',
                         style: TextStyle(
                           color: Colors.white,
-                          fontSize: 30, // Title font size updated to 30
+                          fontSize: 30, 
                           fontWeight: FontWeight.bold,
                           letterSpacing: 1.2,
                         ),
                       ),
                       const SizedBox(height: 20),
-                      // Increased size for profile picture
                       CircleAvatar(
-                        radius: 80, // Increased profile picture size
+                        radius: 80, 
                         backgroundImage: AssetImage('assets/images/profile.png'),
                       ),
                       const SizedBox(height: 16),
@@ -38,7 +36,7 @@ class ProfileScreen extends StatelessWidget {
                         'JayyJenn',
                         style: TextStyle(
                           color: Colors.white,
-                          fontSize: 25, // "JayyJenn" font size updated to 20
+                          fontSize: 25, 
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -82,7 +80,6 @@ class ProfileScreen extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(height: 8),
-                        // Added some space above the vehicle image
                         const SizedBox(height: 16),
                         const VehiclePhotoBox(),
                       ],
@@ -93,16 +90,14 @@ class ProfileScreen extends StatelessWidget {
             ),
           ),
 
-          // Floating back button
           Positioned(
             top: 20,
             left: 20,
             child: CircleAvatar(
-              backgroundColor: const Color.fromARGB(137, 0, 0, 0),
               radius: 22,
               child: IconButton(
                 padding: EdgeInsets.zero,
-                icon: const Icon(Icons.arrow_back, color: Colors.white),
+                icon: const Icon(Icons.arrow_back, color: Color.fromARGB(255, 0, 0, 0)),
                 onPressed: () {
                   Navigator.pop(context);
                 },
@@ -130,9 +125,9 @@ class InfoRow extends StatelessWidget {
           child: Text(
             '$label :',
             style: const TextStyle(
-              color: Color(0xFF116692), // Label color set to 0xFF116692
+              color: Color(0xFF116692), 
               fontWeight: FontWeight.bold,
-              fontSize: 15, // Label font size updated to 15
+              fontSize: 15, 
             ),
           ),
         ),
@@ -157,7 +152,7 @@ class VehiclePhotoBox extends StatelessWidget {
   Widget build(BuildContext context) {
     return ClipRRect(
       borderRadius: BorderRadius.circular(8),  // Applying border radius of 8
-      child: Container(
+      child: SizedBox(
         height: 200,
         width: double.infinity,
         child: Image.asset(

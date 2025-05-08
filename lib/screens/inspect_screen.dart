@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:parking_system/screens/camera_screen.dart';
+import 'package:parking_system/screens/profile_screen.dart';
 
 class SecurityScreen extends StatefulWidget {
   const SecurityScreen({super.key});
@@ -394,7 +395,10 @@ class _SecurityScreenState extends State<SecurityScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 8),
                 child: ElevatedButton(
                   onPressed: () {
-                    // Handle view button press
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => ProfileScreen()),
+                    );
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.orange,
