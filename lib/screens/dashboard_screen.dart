@@ -300,10 +300,7 @@ class SecurityList extends StatelessWidget {
   final List<Map<String, String>> securities = [
     {'name': 'Nguon Chetsavyit', 'id': '21192-1', 'status': 'Active'},
     {'name': 'Mom Vouchheang', 'id': '21192-1', 'status': 'Active'},
-    {'name': 'Thern Thavan', 'id': '21192-1', 'status': 'Active'},
-    {'name': 'Vann Tseng', 'id': '21192-1', 'status': 'Active'},
-    {'name': 'Seng In', 'id': '21192-1', 'status': 'Active'},
-  ];
+    {'name': 'Seng In', 'id': '21192-1', 'status': 'Inactive'}];
 
   @override
   Widget build(BuildContext context) {
@@ -343,80 +340,80 @@ class SecurityList extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
         children: [
-          Expanded(flex: 2, child: Text('Name', style: headerStyle)),
-          Expanded(child: Text('ID Card', style: headerStyle)),
+          Expanded(flex: 4, child: Text('Employee', style: headerStyle)),
           Expanded(child: Text('Status', style: headerStyle)),
         ],
       ),
     );
   }
 
-  Widget _buildSecurityItem(Map<String, String> security) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 12.0),
-      child: Row(
-        children: [
-          Expanded(
-            flex: 2,
-            child: Row(
-              children: [
-                Container(
-                  width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(
-                    color: primaryBlue.withValues(alpha: 0.1),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Center(
-                    child: Text(
-                      security['name']![0],
-                      style: const TextStyle(
-                        color: primaryBlue,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Text(
-                  security['name']!,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    color: textDark,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
+ Widget _buildSecurityItem(Map<String, String> security) {
+  final bool isActive = security['status'] == 'Active';
+  final Color statusColor = isActive ? const Color(0xFFF9A826) : const Color(0xFF4CAF50);
+  
+  return Padding(
+    padding: const EdgeInsets.symmetric(vertical: 10.0),
+    child: Row(
+      children: [
+        Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            color: const Color(0xFFE3F2FD),
+            shape: BoxShape.circle,
           ),
-          Expanded(
+          child: Center(
             child: Text(
-              security['id']!,
-              style: const TextStyle(fontSize: 16, color: textDark),
+              security['name']![0],
+              style: TextStyle(
+                color: Color(0xFF2196F3),
+                fontWeight: FontWeight.w600,
+                fontSize: 16,
+              ),
             ),
           ),
-          Expanded(
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: primaryOrange.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: primaryOrange),
-              ),
-              child: Text(
-                security['status']!,
-                textAlign: TextAlign.center,
+        ),
+        const SizedBox(width: 12),
+              Expanded(
+          flex: 3,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                security['name']!,
                 style: const TextStyle(
-                  color: primaryOrange,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w500,
+                  color: Color(0xFF212121),
                 ),
               ),
+              Text(
+                security['id']!,
+                style: const TextStyle(
+                  fontSize: 13,
+                  color: Color(0xFF757575),
+                ),
+              ),
+            ],
+          ),
+        ),
+        Container(
+           padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 6),
+              decoration: BoxDecoration(
+                color: statusColor.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: statusColor),
+              ),
+          child: Text(
+            security['status']!,
+            style: TextStyle(
+              color: statusColor,
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
             ),
           ),
-        ],
-      ),
-    );
-  }
-}
+        ),
+      ],
+    ),
+  );
+}}

@@ -3,19 +3,19 @@ import 'package:parking_system/screens/activities_screen.dart';
 import 'package:parking_system/screens/dashboard_screen.dart';
 import 'package:parking_system/screens/security_screen.dart';
 
-class MainScreen extends StatefulWidget {
-  const MainScreen({super.key});
+class NavigationScreen extends StatefulWidget {
+  const NavigationScreen({super.key});
 
   @override
-  State<MainScreen> createState() => _MainScreenState();
+  State<NavigationScreen> createState() => _NavigationScreenState();
 }
 
-class _MainScreenState extends State<MainScreen> {
+class _NavigationScreenState extends State<NavigationScreen> {
   int _selectedIndex = 0;
   
   static final List<Widget> _widgetOptions = <Widget>[
-    SecurityScreen(),
     DashboardScreen(),
+    SecurityScreen(),
     HistoryScreen(recentActivity: []),
   ];
 
@@ -52,8 +52,8 @@ class _MainScreenState extends State<MainScreen> {
             label: 'Home',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.dashboard),
-            label: 'Dashboard',
+            icon: Icon(Icons.people_alt_outlined),
+            label: 'Inspect',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.history_rounded),

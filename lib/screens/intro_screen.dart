@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:parking_system/screens/login_screen.dart';
+import 'package:parking_system/screens/register._creen.dart';
 
 class IntroScreen extends StatefulWidget {
   const IntroScreen({super.key});
@@ -39,7 +41,6 @@ class _IntroScreenState extends State<IntroScreen> {
               Expanded(
                 flex: 5,
                 child: Container(
-                  // This is where you'll place your image
                   alignment: Alignment.center,
                   child: Image.asset(
                     'assets/images/in.png',
@@ -59,7 +60,7 @@ class _IntroScreenState extends State<IntroScreen> {
               ),
               const SizedBox(height: 15),
               SizedBox(
-                height: 80, // Fixed height for description area
+                height: 80,
                 child: PageView.builder(
                   controller: _descriptionController,
                   itemCount: _descriptions.length,
@@ -106,7 +107,15 @@ class _IntroScreenState extends State<IntroScreen> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const ParkingRegistrationScreen(),
+                      ),
+                    );
+                  },
+
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.orange,
                     foregroundColor: Colors.white,
@@ -124,7 +133,14 @@ class _IntroScreenState extends State<IntroScreen> {
               const SizedBox(height: 12),
               // Login text
               TextButton(
-                onPressed: () {},
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const LoginScreen(),
+                    ),
+                  );
+                },
                 child: const Text(
                   'already have account? Login',
                   style: TextStyle(color: Colors.white, fontSize: 14),
