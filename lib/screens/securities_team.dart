@@ -1,4 +1,50 @@
 import 'package:flutter/material.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+
+class SecurityModel {
+  final String id;
+  final String fullname;
+  final String email;
+  final String date;
+  final String status;
+  final String? idcard;
+  final String role;
+
+  SecurityModel({
+    required this.id,
+    required this.fullname,
+    required this.email,
+    required this.date,
+    this.idcard,
+    required this.status,
+    required this.role,
+  });
+
+  factory SecurityModel.fromJson(Map<String, dynamic> json) {
+    final securityData = json['security'] as Map<String, dynamic>?;
+
+    return SecurityModel(
+      id: json['id'].toString(),
+      fullname: json['fullname'] ?? '',
+      email: json['email'] ?? '',
+      idcard: json['idcard']?.toString(),
+      date: json['created_at']?.toString() ?? '21192-1',
+      status: securityData?['status'] ?? json['status'] ?? 'active',
+      role: json['role'] ?? 'security_guard',
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'fullname': fullname,
+      'email': email,
+      'idcard': idcard,
+      'status': status,
+      'role': 'security_guard',
+    };
+  }
+}
 
 class SecuritiesTeam extends StatefulWidget {
   const SecuritiesTeam({super.key});
@@ -14,38 +60,229 @@ class _SecuritiesTeamState extends State<SecuritiesTeam> {
   static const Color textDark = Color(0xFF333333);
   static const Color textLight = Color(0xFF666666);
 
-  final List<Map<String, dynamic>> attendanceRecords = [
-    {'name': 'Nguon Chetsavyit', 'date': '21192-1', 'status': 'Active'},
-    {'name': 'Mom Vouchheang', 'date': '21192-1', 'status': 'Active'},
-    {'name': 'Thern Thavan', 'date': '21192-1', 'status': 'Inactive'},
-    {'name': 'Vann Tseng', 'date': '21192-1', 'status': 'Active'},
-    {'name': 'Seng In', 'date': '21192-1', 'status': 'Inactive'},
-    {'name': 'Nguon Chetsavyit', 'date': '21192-1', 'status': 'Active'},
-    {'name': 'Seng In', 'date': '21192-1', 'status': 'Inactive'},
-    {'name': 'Nguon Chetsavyit', 'date': '21192-1', 'status': 'Active'},
-    {'name': 'Seng In', 'date': '21192-1', 'status': 'Inactive'},
-    {'name': 'Nguon Chetsavyit', 'date': '21192-1', 'status': 'Active'},
-    {'name': 'Mom Vouchheang', 'date': '21192-1', 'status': 'Active'},
-    {'name': 'Thern Thavan', 'date': '21192-1', 'status': 'Inactive'},
-    {'name': 'Vann Tseng', 'date': '21192-1', 'status': 'Active'},
-    {'name': 'Seng In', 'date': '21192-1', 'status': 'Inactive'},
-  ];
+  static const String baseUrl = 'http://127.0.0.1:8000/api';
+  static const String apiToken =
+      '2|XUK6QVbE3qLzEYIdXQRfqIuu6X0lN8lSnmLqj4Rpcd9d9b8d';
+
+  List<SecurityModel> securities = [];
+  bool isLoading = true;
+  String? errorMessage;
 
   // Form controllers
-  final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _idController = TextEditingController();
+  final TextEditingController _fullnameController = TextEditingController();
+  final TextEditingController _idcardController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    fetchSecurities();
+  }
 
   @override
   void dispose() {
-    _nameController.dispose();
-    _idController.dispose();
+    _fullnameController.dispose();
+    _idcardController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
     super.dispose();
+  }
+
+  // Add an error handling method
+  void _handleApiError(dynamic error) {
+    setState(() {
+      if (error is http.ClientException) {
+        errorMessage = 'Network error: ${error.message}';
+      } else {
+        errorMessage = 'Error: $error';
+      }
+      isLoading = false;
+    });
+
+    // Log the error for debugging
+    debugPrint('API Error: $error');
+  }
+
+  // API Methods
+  Future<void> fetchSecurities() async {
+    setState(() {
+      isLoading = true;
+      errorMessage = null;
+    });
+
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/security'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $apiToken',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        debugPrint('API Response: ${response.body}');
+
+        final dynamic responseData = json.decode(response.body);
+        List<dynamic> data;
+
+        if (responseData is Map<String, dynamic> &&
+            responseData.containsKey('data')) {
+          // Response is a Map with a 'data' key containing the list
+          data = responseData['data'] as List<dynamic>;
+        } else if (responseData is List) {
+          // Response is directly a list
+          data = responseData;
+        } else {
+          throw Exception('Unexpected response format: $responseData');
+        }
+
+        setState(() {
+          securities =
+              data
+                  .map(
+                    (item) =>
+                        SecurityModel.fromJson(item as Map<String, dynamic>),
+                  )
+                  .toList();
+          isLoading = false;
+        });
+      } else {
+        setState(() {
+          errorMessage =
+              'Failed to load securities. Status code: ${response.statusCode}';
+          isLoading = false;
+        });
+      }
+    } catch (e) {
+      _handleApiError(e);
+    }
+  }
+
+  Future<void> addSecurity(
+    String fullname,
+    String email,
+    String idcard,
+    String password,
+  ) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/security'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $apiToken',
+        },
+        body: json.encode({
+          'fullname': fullname,
+          'email': email,
+          'idcard': idcard,
+          'password': password,
+          'role': 'security_guard',
+          'status': 'active',
+        }),
+      );
+
+      if (response.statusCode == 201 || response.statusCode == 200) {
+        // Refresh securities list
+        fetchSecurities();
+      } else {
+        // Try to parse error message from the response
+        try {
+          final errorData = json.decode(response.body);
+          setState(() {
+            errorMessage =
+                errorData['message'] ??
+                'Failed to add security. Status code: ${response.statusCode}';
+          });
+        } catch (e) {
+          setState(() {
+            errorMessage =
+                'Failed to add security. Status code: ${response.statusCode}';
+          });
+        }
+      }
+    } catch (e) {
+      _handleApiError(e);
+    }
+  }
+
+  Future<void> deleteSecurityById(String id) async {
+    try {
+      final response = await http.delete(
+        Uri.parse('$baseUrl/security/$id'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $apiToken',
+        },
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 204) {
+        // Refresh securities list
+        fetchSecurities();
+      } else {
+        setState(() {
+          errorMessage =
+              'Failed to delete security. Status code: ${response.statusCode}';
+        });
+      }
+    } catch (e) {
+      _handleApiError(e);
+    }
+  }
+
+  Future<void> updateSecurityStatus(String id, String status) async {
+    try {
+      // First, find the security to preserve other fields
+      final security = securities.firstWhere((element) => element.id == id);
+
+      final response = await http.put(
+        Uri.parse('$baseUrl/security/$id'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $apiToken',
+        },
+        body: json.encode({
+          'fullname': security.fullname,
+          'email': security.email,
+          'idcard': security.idcard,
+          'role': security.role,
+          'status': status.toLowerCase() == 'active' ? 'inactive' : 'active',
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        // Refresh securities list
+        fetchSecurities();
+      } else {
+        try {
+          final errorData = json.decode(response.body);
+          setState(() {
+            errorMessage =
+                errorData['message'] ??
+                'Failed to update security status. Status code: ${response.statusCode}';
+          });
+        } catch (e) {
+          setState(() {
+            errorMessage =
+                'Failed to update security status. Status code: ${response.statusCode}';
+          });
+        }
+      }
+    } catch (e) {
+      _handleApiError(e);
+    }
   }
 
   void _showAddSecurityForm() {
     // Reset form values
-    _nameController.clear();
-    _idController.clear();
+    _fullnameController.clear();
+    _idcardController.clear();
+    _emailController.clear();
+    _passwordController.clear();
 
     showDialog(
       context: context,
@@ -60,9 +297,9 @@ class _SecuritiesTeamState extends State<SecuritiesTeam> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   TextField(
-                    controller: _nameController,
+                    controller: _fullnameController,
                     decoration: const InputDecoration(
-                      labelText: 'Name',
+                      labelText: 'Full Name',
                       labelStyle: TextStyle(color: textLight),
                       focusedBorder: UnderlineInputBorder(
                         borderSide: BorderSide(color: primaryBlue),
@@ -71,9 +308,32 @@ class _SecuritiesTeamState extends State<SecuritiesTeam> {
                   ),
                   const SizedBox(height: 16),
                   TextField(
-                    controller: _idController,
+                    controller: _idcardController,
                     decoration: const InputDecoration(
-                      labelText: 'ID',
+                      labelText: 'ID Card',
+                      labelStyle: TextStyle(color: textLight),
+                      focusedBorder: UnderlineInputBorder(
+                        borderSide: BorderSide(color: primaryBlue),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: _emailController,
+                    decoration: const InputDecoration(
+                      labelText: 'Email',
+                      labelStyle: TextStyle(color: textLight),
+                      focusedBorder: UnderlineInputBorder(
+                        borderSide: BorderSide(color: primaryBlue),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: _passwordController,
+                    obscureText: true,
+                    decoration: const InputDecoration(
+                      labelText: 'Password',
                       labelStyle: TextStyle(color: textLight),
                       focusedBorder: UnderlineInputBorder(
                         borderSide: BorderSide(color: primaryBlue),
@@ -106,24 +366,28 @@ class _SecuritiesTeamState extends State<SecuritiesTeam> {
               ElevatedButton(
                 style: ElevatedButton.styleFrom(backgroundColor: primaryBlue),
                 onPressed: () {
-                  if (_nameController.text.isNotEmpty &&
-                      _idController.text.isNotEmpty) {
-                    setState(() {
-                      attendanceRecords.add({
-                        'name': _nameController.text,
-                        'date': _idController.text,
-                        'status': 'Active',
-                      });
-                    });
+                  if (_fullnameController.text.isNotEmpty &&
+                      _emailController.text.isNotEmpty &&
+                      _idcardController.text.isNotEmpty &&
+                      _passwordController.text.isNotEmpty) {
+                    addSecurity(
+                      _fullnameController.text,
+                      _emailController.text,
+                      _idcardController.text,
+                      _passwordController.text,
+                    );
                     Navigator.pop(context);
+                  } else {
+                    // Show validation error
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Please fill all required fields'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
                   }
                 },
-                child: const Text(
-                  'Add',
-                  style: TextStyle(
-                    color: Colors.white,
-                  ), 
-                ),
+                child: const Text('Add', style: TextStyle(color: Colors.white)),
               ),
             ],
           ),
@@ -147,6 +411,14 @@ class _SecuritiesTeamState extends State<SecuritiesTeam> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildSecuritiesTeamHeader(),
+            if (errorMessage != null)
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Text(
+                  errorMessage!,
+                  style: const TextStyle(color: Colors.red),
+                ),
+              ),
             Expanded(
               child: Container(
                 decoration: BoxDecoration(
@@ -162,12 +434,19 @@ class _SecuritiesTeamState extends State<SecuritiesTeam> {
                   ],
                 ),
                 padding: const EdgeInsets.all(16),
-                child: ListView(
-                  children:
-                      attendanceRecords
-                          .map((record) => _buildAttendanceItem(record))
-                          .toList(),
-                ),
+                child:
+                    isLoading
+                        ? const Center(
+                          child: CircularProgressIndicator(color: primaryBlue),
+                        )
+                        : securities.isEmpty
+                        ? const Center(child: Text('No securities found'))
+                        : ListView.builder(
+                          itemCount: securities.length,
+                          itemBuilder:
+                              (context, index) =>
+                                  _buildSecurityItem(securities[index]),
+                        ),
               ),
             ),
           ],
@@ -207,13 +486,14 @@ class _SecuritiesTeamState extends State<SecuritiesTeam> {
               ),
             ),
           ),
+          SizedBox(width: 40), // Space for actions
         ],
       ),
     );
   }
 
-  Widget _buildAttendanceItem(Map<String, dynamic> record) {
-    final bool isActive = record['status'] == 'Active';
+  Widget _buildSecurityItem(SecurityModel security) {
+    final bool isActive = security.status.toLowerCase() == 'active';
     final Color statusColor = isActive ? primaryOrange : primaryGreen;
 
     return Padding(
@@ -225,17 +505,17 @@ class _SecuritiesTeamState extends State<SecuritiesTeam> {
             child: Row(
               children: [
                 Container(
-                  width: 36,
-                  height: 36,
+                  width: 45,
+                  height: 45,
                   decoration: BoxDecoration(
                     color: primaryBlue.withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
                   child: Center(
                     child: Text(
-                      record['name'][0],
+                      security.fullname.isNotEmpty ? security.fullname[0] : '?',
                       style: const TextStyle(
-                        color: primaryBlue,
+                        color: Color.fromARGB(255, 101, 199, 255),
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
                       ),
@@ -243,47 +523,94 @@ class _SecuritiesTeamState extends State<SecuritiesTeam> {
                   ),
                 ),
                 const SizedBox(width: 12),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      record['name'],
-                      style: const TextStyle(
-                        fontSize: 16,
-                        color: textDark,
-                        fontWeight: FontWeight.w500,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        security.fullname,
+                        style: const TextStyle(
+                          fontSize: 20,
+                          color: textDark,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
-                    ),
-                    Text(
-                      record['date'],
-                      style: const TextStyle(fontSize: 12, color: textLight),
-                    ),
-                  ],
+
+                      if (security.idcard != null)
+                        Text(
+                          'ID: ${security.idcard}',
+                          style: const TextStyle(
+                            fontSize: 14,
+                            color: textLight,
+                          ),
+                        ),
+                    ],
+                  ),
                 ),
               ],
             ),
           ),
           Expanded(
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: statusColor.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: statusColor),
-              ),
-              child: Text(
-                record['status'],
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: statusColor,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
+            child: GestureDetector(
+              onTap: () => updateSecurityStatus(security.id, security.status),
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: statusColor.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: statusColor),
+                ),
+                child: Text(
+                  security.status,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: statusColor,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
             ),
           ),
+          IconButton(
+            icon: const Icon(Icons.delete_outline, color: Colors.red),
+            onPressed: () => _showDeleteConfirmation(security),
+            tooltip: 'Delete Security',
+          ),
         ],
       ),
+    );
+  }
+
+  void _showDeleteConfirmation(SecurityModel security) {
+    showDialog(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            title: const Text('Delete Security'),
+            content: Text(
+              'Are you sure you want to delete ${security.fullname}?',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () {
+                  deleteSecurityById(security.id);
+                  Navigator.pop(context);
+                },
+                child: const Text(
+                  'Delete',
+                  style: TextStyle(color: Colors.red),
+                ),
+              ),
+            ],
+          ),
     );
   }
 }

@@ -1,11 +1,12 @@
-import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:flutter/material.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import 'package:parking_system/screens/securities_team.dart';
 
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
 
-  // Define our main colors
   static const Color primaryBlue = Color(0xFF1A5F9C);
   static const Color primaryOrange = Color(0xFFFF8A00);
   static const Color lightBlue = Color(0xFFE6F0F9);
@@ -17,7 +18,6 @@ class DashboardScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: lightBlue.withValues(alpha: 0.3),
-
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20.0),
         child: Column(
@@ -45,7 +45,7 @@ class DashboardScreen extends StatelessWidget {
             const SizedBox(height: 24),
             _buildSecurityListHeader(context),
             const SizedBox(height: 10),
-            SecurityList(),
+            const SecurityTeamWidget(), // Use our new SecurityTeamWidget here
           ],
         ),
       ),
@@ -289,20 +289,127 @@ class DashboardScreen extends StatelessWidget {
   }
 }
 
-class SecurityList extends StatelessWidget {
-  SecurityList({super.key});
+// Our SecurityTeamWidget for the dashboard
+class SecurityModel {
+  final String id;
+  final String fullname;
+  final String status;
+  final String? idcard;
 
+  SecurityModel({
+    required this.id,
+    required this.fullname,
+    this.idcard,
+    required this.status,
+  });
+
+  factory SecurityModel.fromJson(Map<String, dynamic> json) {
+    final securityData = json['security'] as Map<String, dynamic>?;
+
+    return SecurityModel(
+      id: json['id'].toString(),
+      fullname: json['fullname'] ?? '',
+      idcard: json['idcard']?.toString(),
+      status: securityData?['status'] ?? json['status'] ?? 'active',
+    );
+  }
+}
+
+class SecurityTeamWidget extends StatefulWidget {
+  const SecurityTeamWidget({super.key});
+
+  @override
+  State<SecurityTeamWidget> createState() => _SecurityTeamWidgetState();
+}
+
+class _SecurityTeamWidgetState extends State<SecurityTeamWidget> {
   static const Color primaryBlue = Color(0xFF1A5F9C);
   static const Color primaryOrange = Color(0xFFFF8A00);
+  static const Color primaryGreen = Color(0xFF2E8B57);
   static const Color textDark = Color(0xFF333333);
-  static const Color textLight = Color(0xFF666666);
 
-  final List<Map<String, String>> securities = [
-    {'name': 'Nguon Chetsavyit', 'id': '21192-1', 'status': 'Active'},
-    {'name': 'Mom Vouchheang', 'id': '21192-1', 'status': 'Active'},
-    {'name': 'Seng In', 'id': '21192-1', 'status': 'Inactive'},
-    {'name': 'Mom Vouchheang', 'id': '21192-1', 'status': 'Active'},
-  ];
+  static const String baseUrl = 'http://127.0.0.1:8000/api';
+  static const String apiToken = '2|XUK6QVbE3qLzEYIdXQRfqIuu6X0lN8lSnmLqj4Rpcd9d9b8d';
+
+  List<SecurityModel> securities = [];
+  bool isLoading = true;
+  String? errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    fetchSecurities();
+  }
+
+  // Add an error handling method
+  void _handleApiError(dynamic error) {
+    setState(() {
+      if (error is http.ClientException) {
+        errorMessage = 'Network error: ${error.message}';
+      } else {
+        errorMessage = 'Error: $error';
+      }
+      isLoading = false;
+    });
+
+    // Log the error for debugging
+    debugPrint('API Error: $error');
+  }
+
+  // API Methods
+  Future<void> fetchSecurities() async {
+    setState(() {
+      isLoading = true;
+      errorMessage = null;
+    });
+
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/security'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $apiToken',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        debugPrint('API Response: ${response.body}');
+
+        final dynamic responseData = json.decode(response.body);
+        List<dynamic> data;
+
+        if (responseData is Map<String, dynamic> &&
+            responseData.containsKey('data')) {
+          // Response is a Map with a 'data' key containing the list
+          data = responseData['data'] as List<dynamic>;
+        } else if (responseData is List) {
+          // Response is directly a list
+          data = responseData;
+        } else {
+          throw Exception('Unexpected response format: $responseData');
+        }
+
+        setState(() {
+          securities = data
+              .map((item) => SecurityModel.fromJson(item as Map<String, dynamic>))
+              .toList();
+          // Limiting to only 4 items as requested
+          if (securities.length > 4) {
+            securities = securities.sublist(0, 4);
+          }
+          isLoading = false;
+        });
+      } else {
+        setState(() {
+          errorMessage = 'Failed to load securities. Status code: ${response.statusCode}';
+          isLoading = false;
+        });
+      }
+    } catch (e) {
+      _handleApiError(e);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -325,7 +432,28 @@ class SecurityList extends StatelessWidget {
         children: [
           _buildHeaderRow(),
           const Divider(height: 30, thickness: 1),
-          ...securities.map((security) => _buildSecurityItem(security)),
+          if (isLoading)
+            const Center(
+              child: Padding(
+                padding: EdgeInsets.all(20.0),
+                child: CircularProgressIndicator(color: primaryBlue),
+              ),
+            )
+          else if (errorMessage != null)
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Text(
+                errorMessage!,
+                style: const TextStyle(color: Colors.red),
+              ),
+            )
+          else if (securities.isEmpty)
+            const Padding(
+              padding: EdgeInsets.all(16.0),
+              child: Center(child: Text('No security team members found')),
+            )
+          else
+            ...securities.map((security) => _buildSecurityItem(security)),
         ],
       ),
     );
@@ -341,7 +469,7 @@ class SecurityList extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
-        children: [
+        children: const [
           Expanded(flex: 4, child: Text('Employee', style: headerStyle)),
           Expanded(child: Text('Status', style: headerStyle)),
         ],
@@ -349,10 +477,9 @@ class SecurityList extends StatelessWidget {
     );
   }
 
-  Widget _buildSecurityItem(Map<String, String> security) {
-    final bool isActive = security['status'] == 'Active';
-    final Color statusColor =
-        isActive ? const Color(0xFFF9A826) : const Color(0xFF4CAF50);
+  Widget _buildSecurityItem(SecurityModel security) {
+    final bool isActive = security.status.toLowerCase() == 'active';
+    final Color statusColor = isActive ? primaryOrange : primaryGreen;
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 10.0),
@@ -361,14 +488,14 @@ class SecurityList extends StatelessWidget {
           Container(
             width: 40,
             height: 40,
-            decoration: BoxDecoration(
-              color: const Color(0xFFE3F2FD),
+            decoration: const BoxDecoration(
+              color: Color(0xFFE3F2FD),
               shape: BoxShape.circle,
             ),
             child: Center(
               child: Text(
-                security['name']![0],
-                style: TextStyle(
+                security.fullname.isNotEmpty ? security.fullname[0] : '?',
+                style: const TextStyle(
                   color: Color(0xFF2196F3),
                   fontWeight: FontWeight.w600,
                   fontSize: 16,
@@ -383,7 +510,7 @@ class SecurityList extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  security['name']!,
+                  security.fullname,
                   style: const TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w500,
@@ -391,7 +518,7 @@ class SecurityList extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  security['id']!,
+                  security.idcard ?? 'ID: Not available',
                   style: const TextStyle(
                     fontSize: 13,
                     color: Color(0xFF757575),
@@ -408,7 +535,7 @@ class SecurityList extends StatelessWidget {
               border: Border.all(color: statusColor),
             ),
             child: Text(
-              security['status']!,
+              security.status,
               style: TextStyle(
                 color: statusColor,
                 fontSize: 14,

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:parking_system/screens/history_screen.dart';
+import 'package:parking_system/screens/users_list_screen.dart';
 import 'package:parking_system/screens/dashboard_screen.dart';
-import 'package:parking_system/screens/inspect_screen.dart';
+import 'package:parking_system/screens/scan_screen.dart';
 
 class NavigationScreen extends StatefulWidget {
   const NavigationScreen({super.key});
@@ -16,7 +16,7 @@ class _NavigationScreenState extends State<NavigationScreen> {
   static final List<Widget> _widgetOptions = <Widget>[
     DashboardScreen(),
     SecurityScreen(),
-    HistoryScreen(recentActivity: []),
+    UserListScreen(),
   ];
 
   void _onItemTapped(int index) {
@@ -52,12 +52,12 @@ class _NavigationScreenState extends State<NavigationScreen> {
             label: 'Home',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.people_alt_outlined),
-            label: 'Inspect',
+            icon: Icon(Icons.face_retouching_natural),
+            label: 'Scan',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.history_rounded),
-            label: 'History',
+            icon: Icon(Icons.people_alt_outlined),
+            label: 'Users',
           ),
         ],
         currentIndex: _selectedIndex,
