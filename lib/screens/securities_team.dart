@@ -60,9 +60,9 @@ class _SecuritiesTeamState extends State<SecuritiesTeam> {
   static const Color textDark = Color(0xFF333333);
   static const Color textLight = Color(0xFF666666);
 
-  static const String baseUrl = 'http://127.0.0.1:8000/api';
+  static const String baseUrl = 'https://pse-parking.final25.psewmad.org';
   static const String apiToken =
-      '2|XUK6QVbE3qLzEYIdXQRfqIuu6X0lN8lSnmLqj4Rpcd9d9b8d';
+      '3|vufyxvd6e9qy0nVcUKpGVk9N3Y5gKV34oGfq8HAR605d44f1';
 
   List<SecurityModel> securities = [];
   bool isLoading = true;
@@ -113,7 +113,7 @@ class _SecuritiesTeamState extends State<SecuritiesTeam> {
 
     try {
       final response = await http.get(
-        Uri.parse('$baseUrl/security'),
+        Uri.parse('$baseUrl/api/security'),
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
@@ -168,7 +168,7 @@ class _SecuritiesTeamState extends State<SecuritiesTeam> {
   ) async {
     try {
       final response = await http.post(
-        Uri.parse('$baseUrl/security'),
+        Uri.parse('$baseUrl/api/security'),
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
@@ -211,7 +211,7 @@ class _SecuritiesTeamState extends State<SecuritiesTeam> {
   Future<void> deleteSecurityById(String id) async {
     try {
       final response = await http.delete(
-        Uri.parse('$baseUrl/security/$id'),
+        Uri.parse('$baseUrl/api/security/$id'),
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
@@ -235,7 +235,6 @@ class _SecuritiesTeamState extends State<SecuritiesTeam> {
 
   Future<void> updateSecurityStatus(String id, String status) async {
     try {
-      // First, find the security to preserve other fields
       final security = securities.firstWhere((element) => element.id == id);
 
       final response = await http.put(

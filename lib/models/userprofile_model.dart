@@ -2,6 +2,7 @@ class UserProfileModel {
   final String userId;
   final String vehicletype;
   final String licenseplate;
+  final String phonenumber;
   final String profilephoto;
   final String vehiclephoto;
 
@@ -9,6 +10,7 @@ class UserProfileModel {
     required this.userId,
     required this.vehicletype,
     required this.licenseplate,
+    required this.phonenumber,
     required this.profilephoto,
     required this.vehiclephoto,
   });
@@ -18,6 +20,7 @@ class UserProfileModel {
       userId: json['user_id'] ?? '',
       vehicletype: json['vehicletype'] ?? '',
       licenseplate: json['licenseplate'] ?? '',
+      phonenumber: json['phonenumber'] ?? '',
       profilephoto: json['profilephoto'] ?? '',
       vehiclephoto: json['vehiclephoto'] ?? '',
     );
@@ -28,6 +31,7 @@ class UserProfileModel {
       'user_id': userId,
       'vehicletype': vehicletype,
       'licenseplate': licenseplate,
+      'phonenumber': phonenumber,
       'profilephoto': profilephoto,
       'vehiclephoto': vehiclephoto,
     };
