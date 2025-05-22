@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:parking_system/screens/camera_screen.dart';
-import 'package:parking_system/screens/profile_screen.dart';
 
 class SecurityScreen extends StatefulWidget {
   const SecurityScreen({super.key});
@@ -11,69 +10,109 @@ class SecurityScreen extends StatefulWidget {
 
 class _SecurityScreenState extends State<SecurityScreen> {
   final TextEditingController _searchController = TextEditingController();
-  String _searchQuery = '';
-  final String _selectedFilter = 'All';
+  String _searchQuery = ''; // Changed from final to mutable
+  String _selectedFilter = 'All'; // Changed from final to mutable
 
-  final List<Map<String, dynamic>> _parkingData = [
+  final List<Map<String, dynamic>> _activitiesData = [
     {
       "name": "Nguon Chandaravit",
-      "idCard": "21192-1",
-      "licensePlate": "IBK-5678",
-      "status": "Checked-in",
+      "action": "Checked-in",
+      "time": "30/05/25",
     },
     {
       "name": "Mom Vouchheang",
-      "idCard": "21192-2",
-      "licensePlate": "IBK-1234",
-      "status": "Checked-in",
-    },
-    {
-      "name": "Lim Sreynoch",
-      "idCard": "21192-16",
-      "licensePlate": "IBK-5678",
-      "status": "Checked-in",
+      "action": "Checked-in",
+      "time": "29/05/25",
     },
     {
       "name": "Thorn Thearith",
-      "idCard": "21192-3",
-      "licensePlate": "IBK-9012",
-      "status": "Checked-in",
+      "action": "Checkout",
+      "time": "29/05/25",
     },
     {
       "name": "Vann Tiang",
-      "idCard": "21192-4",
-      "licensePlate": "IBK-3456",
-      "status": "Checked-in",
+      "action": "Checked-in",
+      "time": "29/05/25",
     },
     {
       "name": "Sang In",
-      "idCard": "21192-5",
-      "licensePlate": "IBK-7890",
-      "status": "Checked-in",
+      "action": "Checked-in",
+      "time": "29/05/25",
     },
     {
       "name": "Nguon Chandaravit",
-      "idCard": "21192-1",
-      "licensePlate": "IBK-5678",
-      "status": "Checked-in",
+      "action": "Checked-in",
+      "time": "30/05/25",
     },
     {
       "name": "Mom Vouchheang",
-      "idCard": "21192-2",
-      "licensePlate": "IBK-1234",
-      "status": "Checked-in",
+      "action": "Checked-in",
+      "time": "29/05/25",
+    },
+    {
+      "name": "Thorn Thearith",
+      "action": "Checkout",
+      "time": "29/05/25",
     },
     {
       "name": "Vann Tiang",
-      "idCard": "21192-4",
-      "licensePlate": "IBK-3456",
-      "status": "Checked-in",
+      "action": "Checked-in",
+      "time": "29/05/25",
     },
     {
       "name": "Sang In",
-      "idCard": "21192-5",
-      "licensePlate": "IBK-7890",
-      "status": "Checked-in",
+      "action": "Checked-in",
+      "time": "29/05/25",
+    },
+     {
+      "name": "Nguon Chandaravit",
+      "action": "Checked-in",
+      "time": "30/05/25",
+    },
+    {
+      "name": "Mom Vouchheang",
+      "action": "Checked-in",
+      "time": "29/05/25",
+    },
+    {
+      "name": "Thorn Thearith",
+      "action": "Checkout",
+      "time": "29/05/25",
+    },
+    {
+      "name": "Vann Tiang",
+      "action": "Checked-in",
+      "time": "29/05/25",
+    },
+    {
+      "name": "Sang In",
+      "action": "Checked-in",
+      "time": "29/05/25",
+    },
+    {
+      "name": "Nguon Chandaravit",
+      "action": "Checked-in",
+      "time": "30/05/25",
+    },
+    {
+      "name": "Mom Vouchheang",
+      "action": "Checked-in",
+      "time": "29/05/25",
+    },
+    {
+      "name": "Thorn Thearith",
+      "action": "Checkout",
+      "time": "29/05/25",
+    },
+    {
+      "name": "Vann Tiang",
+      "action": "Checked-in",
+      "time": "29/05/25",
+    },
+    {
+      "name": "Sang In",
+      "action": "Checked-in",
+      "time": "29/05/25",
     },
   ];
 
@@ -86,23 +125,21 @@ class _SecurityScreenState extends State<SecurityScreen> {
   List<Map<String, dynamic>> get filteredData {
     if (_searchQuery.isEmpty) {
       if (_selectedFilter == 'All') {
-        return _parkingData;
+        return _activitiesData;
       } else {
-        return _parkingData
-            .where((entry) => entry['status'] == _selectedFilter)
+        return _activitiesData
+            .where((entry) => entry['action'] == _selectedFilter)
             .toList();
       }
     }
 
     var filtered =
-        _parkingData.where((entry) {
+        _activitiesData.where((entry) {
           return entry['name'].toLowerCase().contains(
                 _searchQuery.toLowerCase(),
               ) ||
-              entry['idCard'].toLowerCase().contains(
-                _searchQuery.toLowerCase(),
-              ) ||
-              entry['licensePlate'].toLowerCase().contains(
+              
+              entry['action'].toLowerCase().contains(
                 _searchQuery.toLowerCase(),
               );
         }).toList();
@@ -110,7 +147,7 @@ class _SecurityScreenState extends State<SecurityScreen> {
     if (_selectedFilter != 'All') {
       filtered =
           filtered
-              .where((entry) => entry['status'] == _selectedFilter)
+              .where((entry) => entry['action'] == _selectedFilter)
               .toList();
     }
 
@@ -164,7 +201,7 @@ class _SecurityScreenState extends State<SecurityScreen> {
             borderRadius: BorderRadius.circular(20),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFF0277BD).withValues(alpha: 0.3),
+                color: const Color(0xFF0277BD).withOpacity(0.3),
                 spreadRadius: 2,
                 blurRadius: 8,
                 offset: const Offset(0, 3),
@@ -198,7 +235,7 @@ class _SecurityScreenState extends State<SecurityScreen> {
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withValues(alpha: 0.2),
+            color: Colors.grey.withOpacity(0.2),
             spreadRadius: 1,
             blurRadius: 3,
             offset: const Offset(0, 2),
@@ -236,51 +273,94 @@ class _SecurityScreenState extends State<SecurityScreen> {
             ],
           ),
           const SizedBox(height: 25),
-          _buildSearchBar(),
-          const SizedBox(height: 20),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSearchBar() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.grey.shade100,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade300),
-      ),
-      child: TextField(
-        controller: _searchController,
-        onChanged: (value) {
-          setState(() {
-            _searchQuery = value;
-          });
-        },
-        style: const TextStyle(fontSize: 16),
-        decoration: InputDecoration(
-          hintText: 'Search by name, ID or license plate',
-          hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 16),
-          prefixIcon: Icon(Icons.search, color: Colors.grey.shade600, size: 24),
-          suffixIcon:
-              _searchQuery.isNotEmpty
-                  ? IconButton(
-                    icon: Icon(
-                      Icons.clear,
-                      color: Colors.grey.shade600,
-                      size: 24,
-                    ),
-                    onPressed: () {
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'User Activities',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF212121),
+                ),
+              ),
+             
+            ],
+          ),
+          const SizedBox(height: 15),
+          
+          // Search bar and filter dropdown
+          Row(
+            children: [
+              Expanded(
+                child: Container(
+                  height: 45,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade100,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.grey.shade300),
+                  ),
+                  child: TextField(
+                    controller: _searchController,
+                    onChanged: (value) {
                       setState(() {
-                        _searchController.clear();
-                        _searchQuery = '';
+                        _searchQuery = value;
                       });
                     },
-                  )
-                  : null,
-          border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(vertical: 16),
-        ),
+                    decoration: InputDecoration(
+                      hintText: 'Search by name',
+                      hintStyle: TextStyle(color: Colors.grey.shade500),
+                      prefixIcon: Icon(Icons.search, color: Colors.grey.shade500),
+                      suffixIcon: _searchQuery.isNotEmpty
+                          ? IconButton(
+                              icon: Icon(Icons.clear, color: Colors.grey.shade500),
+                              onPressed: () {
+                                setState(() {
+                                  _searchController.clear();
+                                  _searchQuery = '';
+                                });
+                              },
+                            )
+                          : null,
+                      border: InputBorder.none,
+                      contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Container(
+                height: 45,
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade100,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.grey.shade300),
+                ),
+                child: DropdownButtonHideUnderline(
+                  child: DropdownButton<String>(
+                    value: _selectedFilter,
+                    icon: const Icon(Icons.arrow_drop_down),
+                    style: const TextStyle(color: Color(0xFF424242), fontSize: 16),
+                    onChanged: (String? newValue) {
+                      setState(() {
+                        _selectedFilter = newValue!;
+                      });
+                    },
+                    items: <String>['All', 'Checked-in', 'Checkout']
+                        .map<DropdownMenuItem<String>>((String value) {
+                      return DropdownMenuItem<String>(
+                        value: value,
+                        child: Text(value),
+                      );
+                    }).toList(),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+        ],
       ),
     );
   }
@@ -304,9 +384,8 @@ class _SecurityScreenState extends State<SecurityScreen> {
               child: Text('Name', style: headerStyle),
             ),
           ),
-          Expanded(flex: 2, child: Text('ID Card', style: headerStyle)),
-          Expanded(flex: 2, child: Text('License', style: headerStyle)),
-          Expanded(flex: 2, child: Container()),
+          Expanded(flex: 2, child: Text('Action', style: headerStyle)),
+          Expanded(flex: 2, child: Text('Time', style: headerStyle)),
         ],
       ),
     );
@@ -320,7 +399,6 @@ class _SecurityScreenState extends State<SecurityScreen> {
           itemBuilder: (context, index) => _buildTableRow(filteredData[index]),
         );
   }
-
   Widget _buildNoResultsFound() {
     return Center(
       child: Column(
@@ -372,48 +450,20 @@ class _SecurityScreenState extends State<SecurityScreen> {
                 ),
               ),
             ),
-            // ID Card
+            // Action
             Expanded(
               flex: 2,
               child: Text(
-                entry['idCard'],
+                entry['action'],
                 style: const TextStyle(color: Color(0xFF424242), fontSize: 16),
               ),
             ),
-            // License Plate
+            // Time
             Expanded(
               flex: 2,
               child: Text(
-                entry['licensePlate'],
+                entry['time'],
                 style: const TextStyle(color: Color(0xFF424242), fontSize: 16),
-              ),
-            ),
-            // View Button
-            Expanded(
-              flex: 2,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => ProfileScreen()),
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.orange,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    padding: const EdgeInsets.all(16),
-                    elevation: 3,
-                  ),
-                  child: const Text(
-                    'View',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                ),
               ),
             ),
           ],

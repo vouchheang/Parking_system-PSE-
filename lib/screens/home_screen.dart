@@ -1,28 +1,8 @@
 import 'package:flutter/material.dart';
-
-void main() {
-  runApp(const HomeScreen());
-}
+import 'package:parking_system/screens/profile_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Parking Pass',
-
-      theme: ThemeData(primarySwatch: Colors.blue, fontFamily: 'Roboto'),
-
-      home: const ParkingPassScreen(),
-
-      debugShowCheckedModeBanner: false,
-    );
-  }
-}
-
-class ParkingPassScreen extends StatelessWidget {
-  const ParkingPassScreen({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -30,141 +10,276 @@ class ParkingPassScreen extends StatelessWidget {
       body: SafeArea(
         child: Stack(
           children: [
-            // Main Content (pushed down by 60 pixels)
             SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
               child: Padding(
-                padding: const EdgeInsets.only(top: 80, left: 16, right: 16),
-
+                padding: const EdgeInsets.only(
+                  top: 10,
+                  left: 16,
+                  right: 16,
+                  bottom: 24,
+                ),
                 child: Column(
                   children: [
-                    // Parking Code Card
-                    Card(
-                      elevation: 4,
-
-                      shape: RoundedRectangleBorder(
-                        side: const BorderSide(
-                          color: Color(0xFF116692),
-
-                          width: 1,
-                        ),
-
-                        borderRadius: BorderRadius.circular(10),
+                    Container(
+                      margin: const EdgeInsets.only(bottom: 20),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
                       ),
 
+                      child: Row(
+                        children: [
+                          GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                PageRouteBuilder(
+                                  pageBuilder:
+                                      (
+                                        context,
+                                        animation,
+                                        secondaryAnimation,
+                                      ) => const ProfileScreen("-------------------"),
+                                  transitionsBuilder: (
+                                    context,
+                                    animation,
+                                    secondaryAnimation,
+                                    child,
+                                  ) {
+                                    const begin = Offset(1.0, 0.0);
+                                    const end = Offset.zero;
+                                    const curve = Curves.easeInOut;
+                                    var tween = Tween(
+                                      begin: begin,
+                                      end: end,
+                                    ).chain(CurveTween(curve: curve));
+                                    var offsetAnimation = animation.drive(
+                                      tween,
+                                    );
+                                    return SlideTransition(
+                                      position: offsetAnimation,
+                                      child: child,
+                                    );
+                                  },
+                                ),
+                              );
+                            },
+                            child: Row(
+                              children: [
+                                Container(
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(20),
+                                    border: Border.all(
+                                      color: const Color(0xFF116692),
+                                      width: 2,
+                                    ),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: const Color(
+                                          0xFF116692,
+                                        ).withValues(alpha: 0.2),
+                                        blurRadius: 8,
+                                        offset: const Offset(0, 2),
+                                      ),
+                                    ],
+                                  ),
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(18),
+                                    child: Image.asset(
+                                      'assets/images/profile.png',
+                                      width: 44,
+                                      height: 44,
+                                      fit: BoxFit.cover,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text(
+                                      'JayyJenn!',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16,
+                                        color: Color(0xFF116692),
+                                      ),
+                                    ),
+                                    Text(
+                                      'View Profile',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.grey[600],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                          const Spacer(),
+                        ],
+                      ),
+                    ),
+
+                    // Parking Code Card with improved styling
+                    Card(
+                      elevation: 8,
+                      shadowColor: Colors.black26,
+                      shape: RoundedRectangleBorder(
+                        side: BorderSide(
+                          color: const Color(0xFF116692).withValues(alpha: 0.3),
+                          width: 1,
+                        ),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
                       child: Column(
                         children: [
-                          // Header
                           Container(
                             width: double.infinity,
-
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-
-                            decoration: const BoxDecoration(
-                              color: Color(0xFF116692),
-
-                              borderRadius: BorderRadius.only(
-                                topLeft: Radius.circular(10),
-
-                                topRight: Radius.circular(10),
+                            padding: const EdgeInsets.symmetric(vertical: 18),
+                            decoration: BoxDecoration(
+                              gradient: const LinearGradient(
+                                colors: [Color(0xFF0D5D83), Color(0xFF116692)],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
                               ),
+                              borderRadius: const BorderRadius.only(
+                                topLeft: Radius.circular(16),
+                                topRight: Radius.circular(16),
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: const Color(
+                                    0xFF116692,
+                                  ).withValues(alpha: 0.3),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
                             ),
-
                             child: const Center(
                               child: Text(
                                 'PARKING CODE',
-
                                 style: TextStyle(
                                   color: Colors.white,
-
-                                  fontSize: 18,
-
+                                  fontSize: 20,
                                   fontWeight: FontWeight.bold,
+                                  letterSpacing: 1.2,
                                 ),
                               ),
                             ),
                           ),
 
-                          // QR Code
-                          Padding(
-                            padding: const EdgeInsets.all(24),
-
+                          // QR Code with improved styling
+                          Container(
+                            margin: const EdgeInsets.all(24),
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.08),
+                                  blurRadius: 12,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                              border: Border.all(
+                                color: Colors.grey.withValues(alpha: 0.2),
+                                width: 1,
+                              ),
+                            ),
                             child: Image.asset(
                               'assets/images/qr_code.png',
-
                               width: 180,
-
                               height: 180,
-
                               fit: BoxFit.contain,
                             ),
                           ),
 
-                          // User Information
                           Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 28),
+                            padding: const EdgeInsets.symmetric(horizontal: 24),
+                            child: Divider(
+                              color: Colors.grey.withValues(alpha: 0.3),
+                              thickness: 1,
+                            ),
+                          ),
 
+                          Container(
+                            margin: const EdgeInsets.fromLTRB(24, 12, 24, 12),
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.03),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
                             child: Column(
                               children: [
                                 buildInfoRow('Name', 'Jack Sullivan'),
-
                                 const SizedBox(height: 12),
-
                                 buildInfoRow('Phone', '+855 989 025 37'),
-
                                 const SizedBox(height: 12),
-
                                 buildInfoRow('Vehicle Type', 'Beat 025'),
-
                                 const SizedBox(height: 12),
-
                                 buildInfoRow('License Plate', '1BK-5678'),
-
                                 const SizedBox(height: 12),
-
                                 buildInfoRow('ID Card', '21192-1'),
-
                                 const SizedBox(height: 12),
-
                                 buildInfoRow('Parking Code', 'P-202504301234'),
-
-                                const SizedBox(height: 20),
                               ],
                             ),
                           ),
 
-                          // Vehicle Photo Section
-                          const Padding(
-                            padding: EdgeInsets.only(bottom: 8),
+                          Container(
+                            width: double.infinity,
+                            margin: const EdgeInsets.fromLTRB(24, 8, 24, 24),
 
-                            child: Text(
-                              'Vehicle Photo',
-
-                              style: TextStyle(
-                                color: Color(0xFF0B7295),
-
-                                fontSize: 16,
-
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ),
-
-                          // Vehicle Photo
-                          Padding(
-                            padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
-
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(8),
-
-                              child: Image.asset(
-                                'assets/images/motorcycle.png',
-
-                                width: double.infinity,
-
-                                height: 200,
-
-                                fit: BoxFit.cover,
-                              ),
+                            child: Column(
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.only(
+                                    top: 16,
+                                    bottom: 12,
+                                  ),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        Icons.directions_bike,
+                                        color: const Color(0xFF0B7295),
+                                        size: 20,
+                                      ),
+                                      const SizedBox(width: 8),
+                                      const Text(
+                                        'Vehicle Photo',
+                                        style: TextStyle(
+                                          color: Color(0xFF0B7295),
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: Image.asset(
+                                    'assets/images/motorcycle.png',
+                                    width: double.infinity,
+                                    height: 200,
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
+                                const SizedBox(height: 10),
+                              ],
                             ),
                           ),
                         ],
@@ -175,28 +290,7 @@ class ParkingPassScreen extends StatelessWidget {
               ),
             ),
 
-            // Back Button
-            Positioned(
-              top: 10,
-
-              left: 20,
-
-              child: CircleAvatar(
-                backgroundColor: const Color.fromARGB(137, 0, 0, 0),
-
-                radius: 22,
-
-                child: IconButton(
-                  padding: EdgeInsets.zero,
-
-                  icon: const Icon(Icons.arrow_back, color: Colors.white),
-
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                ),
-              ),
-            ),
+            // Back Button with improved styling
           ],
         ),
       ),
@@ -206,49 +300,40 @@ class ParkingPassScreen extends StatelessWidget {
   static Widget buildInfoRow(String label, String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
-
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
-
         children: [
           SizedBox(
             width: 130,
-
             child: Text(
               label,
-
               style: const TextStyle(
                 color: Color(0xFF116692),
-
-                fontWeight: FontWeight.w500,
-
+                fontWeight: FontWeight.w600,
                 fontSize: 15,
               ),
             ),
           ),
-
           const Text(
             ':',
-
-            style: TextStyle(fontWeight: FontWeight.w500, fontSize: 15),
+            style: TextStyle(
+              fontWeight: FontWeight.w500,
+              fontSize: 15,
+              color: Color(0xFF116692),
+            ),
           ),
-
           const SizedBox(width: 8),
-
           Expanded(
             child: Padding(
               padding: const EdgeInsets.only(left: 6),
-
               child: Align(
                 alignment: Alignment.centerLeft,
-
                 child: Text(
                   value,
-
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w400,
-
+                  style: TextStyle(
+                    fontWeight: FontWeight.w500,
                     fontSize: 15,
+                    color: Colors.grey[800],
                   ),
                 ),
               ),
