@@ -15,30 +15,26 @@ class _ParkingRegistrationScreenState extends State<ParkingRegistrationScreen> {
   final _fullnameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _phoneController = TextEditingController();
   final _licensePlateController = TextEditingController();
   final _idCardController = TextEditingController();
 
   String _selectedVehicleType = 'Motor';
   File? _vehicleImage;
   File? _profileImage;
+
   final List<String> _vehicleTypes = ['Motor', 'Car', 'Bicycle', 'Other'];
 
-  Future<void> _pickVehicleImage() async {
-    final ImagePicker picker = ImagePicker();
-    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
-    if (image != null) {
+  Future<void> _pickImage({required bool isProfile}) async {
+    final picker = ImagePicker();
+    final picked = await picker.pickImage(source: ImageSource.gallery);
+    if (picked != null) {
       setState(() {
-        _vehicleImage = File(image.path);
-      });
-    }
-  }
-
-  Future<void> _pickProfileImage() async {
-    final ImagePicker picker = ImagePicker();
-    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
-    if (image != null) {
-      setState(() {
-        _profileImage = File(image.path);
+        if (isProfile) {
+          _profileImage = File(picked.path);
+        } else {
+          _vehicleImage = File(picked.path);
+        }
       });
     }
   }
@@ -67,36 +63,55 @@ class _ParkingRegistrationScreenState extends State<ParkingRegistrationScreen> {
   String? _validateFullname(String? value) {
     if (value == null || value.trim().isEmpty) return 'Fullname is required';
     if (value.length < 4) return 'Fullname must be at least 4 characters';
-    final regex = RegExp(r'^[a-zA-Z\s]+$');
-    if (!regex.hasMatch(value)) return 'Fullname can only contain letters and spaces';
+    if (!RegExp(r'^[a-zA-Z\s]+$').hasMatch(value)) return 'Only letters and spaces allowed';
     return null;
   }
 
   String? _validateEmail(String? value) {
     if (value == null || value.isEmpty) return 'Email is required';
-    final regex = RegExp(r'^[\w.-]+@institute\.pse\.ngo$');
-    if (!regex.hasMatch(value)) return 'Email must be @institute.pse.ngo';
+    if (!RegExp(r'^[\w.-]+@institute\.pse\.ngo$').hasMatch(value)) {
+      return 'Use @institute.pse.ngo email';
+    }
     return null;
   }
 
   String? _validatePassword(String? value) {
     if (value == null || value.isEmpty) return 'Password is required';
-    if (value.length < 6) return 'Password must be at least 6 characters';
+    if (value.length < 6) return 'Min. 6 characters required';
+    return null;
+  }
+
+  String? _validatePhone(String? value) {
+    if (value == null || value.isEmpty) return 'Phone number is required';
+    if (!RegExp(r'^\d{8,12}$').hasMatch(value)) return 'Enter a valid phone number';
     return null;
   }
 
   String? _validateLicensePlate(String? value) {
-    final regex = RegExp(r'^[A-Z]{1,2}-\d{3,4}$');
     if (value == null || value.isEmpty) return 'License plate is required';
-    if (!regex.hasMatch(value)) return 'Please enter a valid Cambodian license plate';
+    if (!RegExp(r'^[A-Z]{1,2}-\d{3,4}$').hasMatch(value)) {
+      return 'Invalid Cambodian license plate';
+    }
     return null;
   }
 
   String? _validateIDCard(String? value) {
-    final regex = RegExp(r'^\d{4}-\d{1,2}$');
     if (value == null || value.isEmpty) return 'ID Card is required';
-    if (!regex.hasMatch(value)) return 'Please enter a valid PSE staff ID card number';
+    if (!RegExp(r'^\d{4}-\d{1,2}$').hasMatch(value)) {
+      return 'Invalid PSE staff ID';
+    }
     return null;
+  }
+
+  @override
+  void dispose() {
+    _fullnameController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    _phoneController.dispose();
+    _licensePlateController.dispose();
+    _idCardController.dispose();
+    super.dispose();
   }
 
   @override
@@ -113,7 +128,7 @@ class _ParkingRegistrationScreenState extends State<ParkingRegistrationScreen> {
               child: Column(
                 children: [
                   GestureDetector(
-                    onTap: _pickProfileImage,
+                    onTap: () => _pickImage(isProfile: true),
                     child: Container(
                       width: 80,
                       height: 80,
@@ -125,12 +140,7 @@ class _ParkingRegistrationScreenState extends State<ParkingRegistrationScreen> {
                       child: _profileImage != null
                           ? ClipRRect(
                               borderRadius: BorderRadius.circular(40),
-                              child: Image.file(
-                                _profileImage!,
-                                fit: BoxFit.cover,
-                                width: 80,
-                                height: 80,
-                              ),
+                              child: Image.file(_profileImage!, fit: BoxFit.cover),
                             )
                           : const Icon(Icons.person, size: 40, color: Color(0xFF0D6E9E)),
                     ),
@@ -144,15 +154,15 @@ class _ParkingRegistrationScreenState extends State<ParkingRegistrationScreen> {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.all(24.0),
+              padding: const EdgeInsets.all(24),
               child: Form(
                 key: _formKey,
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _buildTextField('Fullname', _fullnameController, _validateFullname),
                     _buildTextField('Email', _emailController, _validateEmail, TextInputType.emailAddress),
                     _buildTextField('Password', _passwordController, _validatePassword, TextInputType.text, true),
+                    _buildTextField('Phone Number', _phoneController, _validatePhone, TextInputType.phone),
                     _buildDropdownField(),
                     _buildTextField('License Plate Number', _licensePlateController, _validateLicensePlate),
                     _buildTextField('ID Card', _idCardController, _validateIDCard),
@@ -166,9 +176,7 @@ class _ParkingRegistrationScreenState extends State<ParkingRegistrationScreen> {
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFFF9A826),
                           foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                         ),
                         child: const Text('Complete', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                       ),
@@ -183,7 +191,7 @@ class _ParkingRegistrationScreenState extends State<ParkingRegistrationScreen> {
     );
   }
 
-  Widget _buildTextField(String label, TextEditingController controller, String? Function(String?)? validator,
+  Widget _buildTextField(String label, TextEditingController controller, String? Function(String?) validator,
       [TextInputType keyboardType = TextInputType.text, bool obscureText = false]) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -198,10 +206,7 @@ class _ParkingRegistrationScreenState extends State<ParkingRegistrationScreen> {
           decoration: InputDecoration(
             filled: true,
             fillColor: Colors.white,
-            border: const OutlineInputBorder(
-              borderRadius: BorderRadius.all(Radius.circular(8)),
-              borderSide: BorderSide.none,
-            ),
+            border: const OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(8)), borderSide: BorderSide.none),
             hintText: 'Enter ${label.toLowerCase()}',
             hintStyle: const TextStyle(color: Colors.grey),
             contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -223,26 +228,12 @@ class _ParkingRegistrationScreenState extends State<ParkingRegistrationScreen> {
           decoration: const InputDecoration(
             filled: true,
             fillColor: Colors.white,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.all(Radius.circular(8)),
-              borderSide: BorderSide.none,
-            ),
+            border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(8)), borderSide: BorderSide.none),
             contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           ),
           icon: const Icon(Icons.keyboard_arrow_down),
-          items: _vehicleTypes.map((String type) {
-            return DropdownMenuItem<String>(
-              value: type,
-              child: Text(type),
-            );
-          }).toList(),
-          onChanged: (String? newValue) {
-            if (newValue != null) {
-              setState(() {
-                _selectedVehicleType = newValue;
-              });
-            }
-          },
+          items: _vehicleTypes.map((type) => DropdownMenuItem(value: type, child: Text(type))).toList(),
+          onChanged: (value) => setState(() => _selectedVehicleType = value!),
         ),
         const SizedBox(height: 16),
       ],
@@ -256,21 +247,14 @@ class _ParkingRegistrationScreenState extends State<ParkingRegistrationScreen> {
         const Text('Upload your vehicle Photo', style: TextStyle(fontSize: 14, color: Color(0xFF8FA3AD))),
         const SizedBox(height: 8),
         GestureDetector(
-          onTap: _pickVehicleImage,
+          onTap: () => _pickImage(isProfile: false),
           child: Container(
             height: 120,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(8),
-            ),
+            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(8)),
             child: _vehicleImage != null
                 ? ClipRRect(
                     borderRadius: BorderRadius.circular(8),
-                    child: Image.file(
-                      _vehicleImage!,
-                      fit: BoxFit.cover,
-                      width: double.infinity,
-                    ),
+                    child: Image.file(_vehicleImage!, fit: BoxFit.cover, width: double.infinity),
                   )
                 : Center(
                     child: Column(
@@ -286,15 +270,5 @@ class _ParkingRegistrationScreenState extends State<ParkingRegistrationScreen> {
         ),
       ],
     );
-  }
-
-  @override
-  void dispose() {
-    _fullnameController.dispose();
-    _emailController.dispose();
-    _passwordController.dispose();
-    _licensePlateController.dispose();
-    _idCardController.dispose();
-    super.dispose();
   }
 }
