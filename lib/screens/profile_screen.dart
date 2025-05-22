@@ -15,7 +15,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final UserProfileController _userProfileController = UserProfileController();
   late Future<UserpModel> _userProfileData;
 
-
   @override
   void initState() {
     super.initState();
@@ -101,9 +100,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            InfoRow(label: 'Name', value: profile.fullname),
+                            InfoRow(label: 'Fullname', value: profile.fullname),
                             const SizedBox(height: 12),
-                            InfoRow(label: 'Phone', value: profile.id),
+                            InfoRow(
+                              label: 'Phone Number',
+                              value: profile.profile?.phonenumber ?? '',
+                            ),
                             const SizedBox(height: 12),
                             InfoRow(
                               label: 'Vehicle Type',

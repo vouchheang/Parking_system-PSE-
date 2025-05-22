@@ -5,12 +5,12 @@ import 'package:parking_system/models/userprofile_model.dart';
 // import 'package:parking_system/services/storage_service.dart';
 
 class ApiService {
-  static const String baseUrl = 'http://127.0.0.1:8000';
+  static const String baseUrl = 'https://pse-parking.final25.psewmad.org';
   // final StorageService _storageService = StorageService();
 
   Future<List<UserModel>> fetchUsers() async {
     const String staticToken =
-        '2|XUK6QVbE3qLzEYIdXQRfqIuu6X0lN8lSnmLqj4Rpcd9d9b8d'; 
+        '3|vufyxvd6e9qy0nVcUKpGVk9N3Y5gKV34oGfq8HAR605d44f1'; 
 
     final response = await http.get(
       Uri.parse('$baseUrl/api/users'),
@@ -37,7 +37,7 @@ class ApiService {
 
   Future<UserpModel> fetchUserProfile(String id) async {
     const String staticToken =
-        '2|XUK6QVbE3qLzEYIdXQRfqIuu6X0lN8lSnmLqj4Rpcd9d9b8d';
+        '3|vufyxvd6e9qy0nVcUKpGVk9N3Y5gKV34oGfq8HAR605d44f1';
 
     final response = await http.get(
       Uri.parse('$baseUrl/api/users/$id'),

@@ -328,8 +328,8 @@ class _SecurityTeamWidgetState extends State<SecurityTeamWidget> {
   static const Color primaryGreen = Color(0xFF2E8B57);
   static const Color textDark = Color(0xFF333333);
 
-  static const String baseUrl = 'http://127.0.0.1:8000/api';
-  static const String apiToken = '2|XUK6QVbE3qLzEYIdXQRfqIuu6X0lN8lSnmLqj4Rpcd9d9b8d';
+  static const String baseUrl = 'https://pse-parking.final25.psewmad.org/api';
+  static const String apiToken = '3|vufyxvd6e9qy0nVcUKpGVk9N3Y5gKV34oGfq8HAR605d44f1';
 
   List<SecurityModel> securities = [];
   bool isLoading = true;
