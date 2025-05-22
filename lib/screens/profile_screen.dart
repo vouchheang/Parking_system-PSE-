@@ -3,9 +3,8 @@ import 'package:parking_system/controllers/userprofile_controller.dart';
 import 'package:parking_system/models/userprofile_model.dart';
 
 class ProfileScreen extends StatefulWidget {
-  final String userId;
-
   const ProfileScreen(this.userId, {super.key});
+  final String userId;
 
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
@@ -18,7 +17,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   void initState() {
     super.initState();
-    _userProfileData = _userProfileController.fetchUserProfile(widget.userId);
+    _userProfileData = _userProfileController.getUserProfile(widget.userId);
   }
 
   @override
