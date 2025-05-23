@@ -1,7 +1,10 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'dart:io';
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart' show Uint8List, kIsWeb;
+import 'package:parking_system/services/api_service.dart'; // Update to use ApiService
+// Import UserpModel
 
 class ParkingRegistrationScreen extends StatefulWidget {
   const ParkingRegistrationScreen({super.key});
@@ -13,17 +16,18 @@ class ParkingRegistrationScreen extends StatefulWidget {
 
 class _ParkingRegistrationScreenState extends State<ParkingRegistrationScreen> {
   final _formKey = GlobalKey<FormState>();
+  final ApiService _apiService = ApiService(); // Use ApiService instead of RegisterController
 
   final _fullnameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _licensePlateController = TextEditingController();
   final _idCardController = TextEditingController();
-  final _phoneNumberController = TextEditingController(); // NEW
+  final _phoneNumberController = TextEditingController();
 
   String _selectedVehicleType = 'Motor';
-  File? _vehicleImage;
-  File? _profileImage;
+  XFile? _vehicleImage; // Use XFile instead of File
+  XFile? _profileImage; // Use XFile instead of File
   final List<String> _vehicleTypes = ['Motor', 'Car', 'Bicycle', 'Other'];
 
   Future<void> _pickVehicleImage() async {
@@ -31,7 +35,7 @@ class _ParkingRegistrationScreenState extends State<ParkingRegistrationScreen> {
     final XFile? image = await picker.pickImage(source: ImageSource.gallery);
     if (image != null) {
       setState(() {
-        _vehicleImage = File(image.path);
+        _vehicleImage = image;
       });
     }
   }
@@ -41,7 +45,7 @@ class _ParkingRegistrationScreenState extends State<ParkingRegistrationScreen> {
     final XFile? image = await picker.pickImage(source: ImageSource.gallery);
     if (image != null) {
       setState(() {
-        _profileImage = File(image.path);
+        _profileImage = image;
       });
     }
   }
@@ -58,17 +62,56 @@ class _ParkingRegistrationScreenState extends State<ParkingRegistrationScreen> {
     return true;
   }
 
-  void _submitForm() {
-    final isFormValid = _formKey.currentState!.validate();
-    final areImagesValid = _validateImages();
+Future<void> _submitForm() async {
+  final isFormValid = _formKey.currentState!.validate();
+  final areImagesValid = _validateImages();
 
-    if (isFormValid && areImagesValid) {
+  if (isFormValid && areImagesValid) {
+    try {
+      print('Submitting: fullname=${_fullnameController.text}, email=${_emailController.text}, ...');
+      final user = await _apiService.registerUser(
+        fullname: _fullnameController.text.trim(),
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
+        phonenumber: _phoneNumberController.text.trim(),
+        idcard: _idCardController.text.trim(),
+        vehicletype: _selectedVehicleType.toLowerCase(),
+        licenseplate: _licensePlateController.text.trim(),
+        profilephoto: _profileImage,
+        vehiclephoto: _vehicleImage,
+      );
+
+      print('Registration successful: ${user.toJson()}');
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Registration submitted successfully!')),
       );
-      // You can add more submission logic here (e.g., API calls)
+
+      // Clear form
+      _formKey.currentState!.reset();
+      _fullnameController.clear();
+      _emailController.clear();
+      _passwordController.clear();
+      _phoneNumberController.clear();
+      _idCardController.clear();
+      _licensePlateController.clear();
+      setState(() {
+        _selectedVehicleType = 'Motor';
+        _profileImage = null;
+        _vehicleImage = null;
+      });
+    } catch (e) {
+      print('Registration error: $e');
+      String errorMessage = 'Registration failed: $e';
+      if (e.toString().contains('email has already been taken')) {
+        errorMessage = 'The email is already registered. Please use a different email.';
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(errorMessage)),
+      );
     }
   }
+}
 
   String? _validateFullname(String? value) {
     if (value == null || value.trim().isEmpty) return 'Fullname is required';
@@ -145,11 +188,19 @@ class _ParkingRegistrationScreenState extends State<ParkingRegistrationScreen> {
                                       width: 80,
                                       height: 80,
                                     )
-                                  : Image.file(
-                                      _profileImage!,
-                                      fit: BoxFit.cover,
-                                      width: 80,
-                                      height: 80,
+                                  : FutureBuilder<Uint8List>(
+                                      future: _profileImage!.readAsBytes(),
+                                      builder: (context, snapshot) {
+                                        if (snapshot.hasData) {
+                                          return Image.memory(
+                                            snapshot.data!,
+                                            fit: BoxFit.cover,
+                                            width: 80,
+                                            height: 80,
+                                          );
+                                        }
+                                        return const CircularProgressIndicator();
+                                      },
                                     ),
                             )
                           : const Icon(
@@ -197,10 +248,10 @@ class _ParkingRegistrationScreenState extends State<ParkingRegistrationScreen> {
                       true,
                     ),
                     _buildTextField(
-                      'Phone Number', // NEW
-                      _phoneNumberController, // NEW
-                      _validatePhoneNumber, // NEW
-                      TextInputType.phone, // NEW
+                      'Phone Number',
+                      _phoneNumberController,
+                      _validatePhoneNumber,
+                      TextInputType.phone,
                     ),
                     _buildDropdownField(),
                     _buildTextField(
@@ -353,9 +404,17 @@ class _ParkingRegistrationScreenState extends State<ParkingRegistrationScreen> {
                             _vehicleImage!.path,
                             fit: BoxFit.cover,
                           )
-                        : Image.file(
-                            _vehicleImage!,
-                            fit: BoxFit.cover,
+                        : FutureBuilder<Uint8List>(
+                            future: _vehicleImage!.readAsBytes(),
+                            builder: (context, snapshot) {
+                              if (snapshot.hasData) {
+                                return Image.memory(
+                                  snapshot.data!,
+                                  fit: BoxFit.cover,
+                                );
+                              }
+                              return const CircularProgressIndicator();
+                            },
                           ),
                   )
                 : const Center(
