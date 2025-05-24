@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:parking_system/models/activity_model.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:parking_system/models/loginModel.dart';
 import 'package:parking_system/models/userlist_model.dart';
@@ -9,6 +10,9 @@ class ApiService {
   static const String baseUrl = 'https://pse-parking.final25.psewmad.org';
   static const String staticToken = '5|KgzNsnVTbbIhyiLNpD0R2v4WodiQO5oG7NshHPP81d26615f';
 
+  Future<List<UserModel>> fetchUsers() async {
+    const String staticToken =
+        '12|NRNLrtv7YXimpp9Dz5PQdZNrw8trWfJge9b9fsaXaf0b4e41';
 
 
   Future<UserpModel> registerUser({
@@ -63,6 +67,10 @@ class ApiService {
     }
   }
 
+  // Fetch user profile from API
+  Future<UserpModel> fetchUserProfile(String id) async {
+    const String staticToken =
+        '12|NRNLrtv7YXimpp9Dz5PQdZNrw8trWfJge9b9fsaXaf0b4e41';
   fetchUserProfile(String userId) {}
 
   Future<List<UserModel>> fetchUsers() async {
@@ -105,5 +113,53 @@ class ApiService {
     } else {
       throw Exception('Failed to login: ${response.statusCode} - ${response.body}');
     }
+  }
+
+  Future<void> postActivity(String userId) async {
+    final url = Uri.parse('$baseUrl/api/activities');
+    const String staticToken =
+        '12|NRNLrtv7YXimpp9Dz5PQdZNrw8trWfJge9b9fsaXaf0b4e41';
+
+    final response = await http.post(
+      url,
+      headers: {
+        'Authorization': 'Bearer $staticToken',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({'user_id': userId}),
+    );
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      // Optionally parse response to show message
+      final responseData = jsonDecode(response.body);
+      if (responseData['success'] == true) {
+        // success, you can show a snackbar or update UI
+      } else {
+        throw Exception(responseData['message'] ?? 'Unknown error');
+      }
+    } else {
+      throw Exception('Failed to post activity');
+    }
+  }
+
+  // Public method: gets profile, auto-checks for internet
+  Future<UserpModel> getUserProfile(String id) async {
+    final isOnline = await checkInternet();
+    if (isOnline) {
+      return await fetchUserProfile(id);
+    } else {
+      final localProfile = await _storageService.loadProfileFromLocal();
+      if (localProfile != null) {
+        return localProfile;
+      }
+      throw Exception("No offline profile found.");
+    }
+  }
+
+  // Internet check
+  Future<bool> checkInternet() async {
+    var result = await Connectivity().checkConnectivity();
+    return result != ConnectivityResult.none;
+  }
 }
 }
