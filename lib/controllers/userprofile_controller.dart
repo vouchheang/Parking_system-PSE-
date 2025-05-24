@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:connectivity_plus/connectivity_plus.dart';
 
 import 'package:parking_system/models/userprofile_model.dart';
 import 'package:parking_system/services/api_service.dart';

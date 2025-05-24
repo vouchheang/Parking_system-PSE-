@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:http/http.dart' as http;
+import 'package:parking_system/models/activity_model.dart';
 import 'package:parking_system/models/userlist_model.dart';
 import 'package:parking_system/models/userprofile_model.dart';
 import 'package:parking_system/services/storage_service.dart';
@@ -11,7 +12,8 @@ class ApiService {
 
   // Fetch list of users
   Future<List<UserModel>> fetchUsers() async {
-    const String staticToken = '5|KgzNsnVTbbIhyiLNpD0R2v4WodiQO5oG7NshHPP81d26615f';
+    const String staticToken =
+        '12|NRNLrtv7YXimpp9Dz5PQdZNrw8trWfJge9b9fsaXaf0b4e41';
 
     final response = await http.get(
       Uri.parse('$baseUrl/api/users'),
@@ -37,7 +39,8 @@ class ApiService {
 
   // Fetch user profile from API
   Future<UserpModel> fetchUserProfile(String id) async {
-    const String staticToken = '5|KgzNsnVTbbIhyiLNpD0R2v4WodiQO5oG7NshHPP81d26615f';
+    const String staticToken =
+        '12|NRNLrtv7YXimpp9Dz5PQdZNrw8trWfJge9b9fsaXaf0b4e41';
 
     final response = await http.get(
       Uri.parse('$baseUrl/api/users/$id'),
@@ -55,6 +58,33 @@ class ApiService {
       return UserpModel.fromJson(data);
     } else {
       throw Exception('Failed to load user: ${response.statusCode}');
+    }
+  }
+
+  Future<void> postActivity(String userId) async {
+    final url = Uri.parse('$baseUrl/api/activities');
+    const String staticToken =
+        '12|NRNLrtv7YXimpp9Dz5PQdZNrw8trWfJge9b9fsaXaf0b4e41';
+
+    final response = await http.post(
+      url,
+      headers: {
+        'Authorization': 'Bearer $staticToken',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({'user_id': userId}),
+    );
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      // Optionally parse response to show message
+      final responseData = jsonDecode(response.body);
+      if (responseData['success'] == true) {
+        // success, you can show a snackbar or update UI
+      } else {
+        throw Exception(responseData['message'] ?? 'Unknown error');
+      }
+    } else {
+      throw Exception('Failed to post activity');
     }
   }
 
