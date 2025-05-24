@@ -1,53 +1,55 @@
-class UserpModel {
+class LoginModel {
   final String id;
   final String fullname;
-  final String idcard;
   final String email;
   final String phonenumber;
+  final String idcard;
   final String vehicletype;
   final String licenseplate;
-  final String profilephoto;
-  final String vehiclephoto;
+  final String? profilephoto;
+  final String? vehiclephoto;
+  final String token; // Assuming the API returns a token for authentication
 
-  UserpModel({
+  LoginModel({
     required this.id,
     required this.fullname,
-    required this.idcard,
     required this.email,
     required this.phonenumber,
+    required this.idcard,
     required this.vehicletype,
     required this.licenseplate,
-    required this.profilephoto,
-    required this.vehiclephoto,
+    this.profilephoto,
+    this.vehiclephoto,
+    required this.token,
   });
 
-  factory UserpModel.fromJson(Map<String, dynamic> json) {
-    return UserpModel(
-      id: json['id']?.toString() ?? '',
+  factory LoginModel.fromJson(Map<String, dynamic> json) {
+    return LoginModel(
+      id: json['id'].toString(),
       fullname: json['fullname'] ?? '',
-      idcard: json['idcard'] ?? '',
       email: json['email'] ?? '',
       phonenumber: json['phonenumber'] ?? '',
+      idcard: json['idcard'] ?? '',
       vehicletype: json['vehicletype'] ?? '',
       licenseplate: json['licenseplate'] ?? '',
-      profilephoto: json['profilephoto'] ?? '',
-      vehiclephoto: json['vehiclephoto'] ?? '',
+      profilephoto: json['profilephoto'],
+      vehiclephoto: json['vehiclephoto'],
+      token: json['token'] ?? '',
     );
   }
-
-  get profile => null;
 
   Map<String, dynamic> toJson() {
     return {
       'id': id,
       'fullname': fullname,
-      'idcard': idcard,
       'email': email,
       'phonenumber': phonenumber,
+      'idcard': idcard,
       'vehicletype': vehicletype,
       'licenseplate': licenseplate,
       'profilephoto': profilephoto,
       'vehiclephoto': vehiclephoto,
+      'token': token,
     };
   }
 }
