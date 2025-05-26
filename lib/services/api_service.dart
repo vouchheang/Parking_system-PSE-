@@ -2,18 +2,69 @@ import 'dart:convert';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import 'package:parking_system/models/activity_model.dart';
+import 'package:parking_system/models/checkin_out_model.dart';
+import 'package:parking_system/models/usercount_model.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:parking_system/models/loginModel.dart';
 import 'package:parking_system/models/userlist_model.dart';
+import 'package:parking_system/models/userp_model.dart';
 import 'package:parking_system/models/userprofile_model.dart';
 import 'package:parking_system/services/storage_service.dart';
 
 
 class ApiService {
   static const String baseUrl = 'https://pse-parking.final25.psewmad.org';
-  static const String staticToken = '27|ofcrvfyfihYHIrDndaJ1VMpPOJcfvQW1BOl8R5X02ba5e9ac';
-
+  static const String staticToken =
+      '37|qzVEdYKkHDzrFEygDCq0LR8C6NqSifKWc7Kanw6Sbff81141';
   final StorageService _storageService = StorageService();
+
+  Future<UserCount?> fetchUserCount() async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/api/users/count'),
+      headers: {
+        'Authorization': 'Bearer $staticToken',
+        'Accept': 'application/json',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return UserCount.fromJson(data);
+    } else {
+      return null;
+    }
+  }
+
+  Future<TodayActionCount?> fetchTodayActionCount() async {
+    final response = await http.get(
+      Uri.parse('http://127.0.0.1:8000/api/today-actions'),
+    );
+
+    if (response.statusCode == 200) {
+      final jsonData = json.decode(response.body);
+      return TodayActionCount.fromJson(jsonData);
+    } else {
+      return null;
+    }
+  }
+
+  Future<List<Activity>> fetchActivities() async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/api/activities'),
+      headers: {
+        'Authorization': 'Bearer $staticToken',
+        'Content-Type': 'application/json',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      List jsonData = json.decode(response.body);
+      return jsonData.map((item) => Activity.fromJson(item)).toList();
+    } else {
+      throw Exception('Failed to load activities');
+    }
+  }
 
 Future<UserpModel> registerUser({
     required String fullname,
@@ -172,6 +223,29 @@ Future<UserpModel> registerUser({
     }
   }
 
+  Future<void> updateUserProfile(String id, UserpfModel user) async {
+    final response = await http.put(
+      Uri.parse('$baseUrl/api/users/$id'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': 'Bearer $staticToken',
+      },
+      body: json.encode(user.toJson()),
+    );
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      final responseData = jsonDecode(response.body);
+      if (responseData['success'] == true) {
+        // success
+      } else {
+        throw Exception(responseData['message'] ?? 'Unknown error');
+      }
+    } else {
+      throw Exception('Failed to update user profile: ${response.statusCode}');
+    }
+  }
+
   // Fetch user profile from API
   Future<UserpModel> fetchUserProfile(String id) async {
     final response = await http.get(
@@ -186,7 +260,7 @@ Future<UserpModel> registerUser({
       final jsonResponse = jsonDecode(response.body);
       final data = jsonResponse['data'] ?? jsonResponse;
 
-      await _storageService.saveProfileLocally(data); // ✅ Use StorageService
+      await _storageService.saveProfileLocally(data);
       return UserpModel.fromJson(data);
     } else {
       throw Exception('Failed to load user: ${response.statusCode}');

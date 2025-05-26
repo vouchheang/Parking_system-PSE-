@@ -2,17 +2,110 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:parking_system/controllers/usercount_controller.dart';
 import 'package:parking_system/screens/securities_team.dart';
+import 'package:parking_system/controllers/user_controller.dart';
+import 'package:parking_system/models/usercount_model.dart';
 
-class DashboardScreen extends StatelessWidget {
+class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
 
+  @override
+  State<DashboardScreen> createState() => _DashboardScreenState();
+}
+
+class _DashboardScreenState extends State<DashboardScreen> {
   static const Color primaryBlue = Color(0xFF1A5F9C);
   static const Color primaryOrange = Color(0xFFFF8A00);
   static const Color lightBlue = Color(0xFFE6F0F9);
-  static const Color lightOrange = Color(0xFFFFF0E0);
   static const Color textDark = Color(0xFF333333);
   static const Color textLight = Color(0xFF666666);
+
+  final UserCountController _userController = UserCountController();
+  // Add controller for today's actions
+  final UserCountController _todayActionController = UserCountController();
+  
+  // User count variables
+  int totalUsers = 0;
+  bool isLoadingUsers = true;
+  String? userCountError;
+  
+  // Today's action variables
+  int todayCheckins = 0;
+  int todayCheckouts = 0;
+  bool isLoadingActions = true;
+  String? actionCountError;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchUserCount();
+    _fetchTodayActions(); // Add this line
+  }
+
+  Future<void> _fetchUserCount() async {
+    setState(() {
+      isLoadingUsers = true;
+      userCountError = null;
+    });
+
+    try {
+      final userCount = await _userController.fetchUserCount();
+      if (userCount != null && userCount.success) {
+        setState(() {
+          totalUsers = userCount.totalUsers;
+          isLoadingUsers = false;
+        });
+      } else {
+        setState(() {
+          userCountError = 'Failed to fetch user count';
+          isLoadingUsers = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        userCountError = 'Error: $e';
+        isLoadingUsers = false;
+      });
+    }
+  }
+
+  // Add this new method to fetch today's actions
+  Future<void> _fetchTodayActions() async {
+    setState(() {
+      isLoadingActions = true;
+      actionCountError = null;
+    });
+
+    try {
+      final todayActions = await _todayActionController.fetchTodayActionCount();
+      if (todayActions != null) {
+        setState(() {
+          todayCheckins = todayActions.checkins;
+          todayCheckouts = todayActions.checkouts;
+          isLoadingActions = false;
+        });
+      } else {
+        setState(() {
+          actionCountError = 'Failed to fetch today\'s actions';
+          isLoadingActions = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        actionCountError = 'Error: $e';
+        isLoadingActions = false;
+      });
+    }
+  }
+
+  // Add refresh method for both data sources
+  Future<void> _refreshAllData() async {
+    await Future.wait([
+      _fetchUserCount(),
+      _fetchTodayActions(),
+    ]);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -37,15 +130,11 @@ class DashboardScreen extends StatelessWidget {
               style: TextStyle(color: textLight, fontSize: 16),
             ),
             const SizedBox(height: 24),
-            // _buildQuickStatsRow(),
-            const SizedBox(height: 24),
             _buildTotalUsersCard(),
-            const SizedBox(height: 24),
-            // _buildActionButtons(context),
             const SizedBox(height: 24),
             _buildSecurityListHeader(context),
             const SizedBox(height: 10),
-            const SecurityTeamWidget(), // Use our new SecurityTeamWidget here
+            const SecurityTeamWidget(),
           ],
         ),
       ),
@@ -70,191 +159,215 @@ class DashboardScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Total Users row with dynamic data
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Row(
-                children: [
-                  Icon(Icons.people, color: primaryBlue, size: 24),
-                  SizedBox(width: 8),
-                  Text(
-                    'Total Users:',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                      color: textDark,
-                    ),
-                  ),
-                  SizedBox(width: 8),
-                  Text(
-                    '86',
-                    style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      color: primaryOrange,
-                    ),
-                  ),
-                ],
+              const Icon(Icons.people, color: primaryBlue, size: 24),
+              const SizedBox(width: 8),
+              const Text(
+                'Total Users:',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: textDark,
+                ),
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 6,
+              const SizedBox(width: 8),
+              if (isLoadingUsers)
+                const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: primaryOrange,
+                  ),
+                )
+              else if (userCountError != null)
+                const Text(
+                  'Error',
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.red,
+                  ),
+                )
+              else
+                Text(
+                  '$totalUsers',
+                  style: const TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: primaryOrange,
+                  ),
                 ),
-                decoration: BoxDecoration(
-                  color: lightBlue,
-                  borderRadius: BorderRadius.circular(20),
+              if (!isLoadingUsers && userCountError == null)
+                IconButton(
+                  icon: const Icon(Icons.refresh, color: primaryBlue, size: 20),
+                  onPressed: _refreshAllData, // Changed to refresh all data
+                  tooltip: 'Refresh data',
                 ),
-                child: const Row(
-                  children: [
-                    Text(
-                      'This Week',
-                      style: TextStyle(
-                        color: primaryBlue,
-                        fontWeight: FontWeight.w500,
-                        fontSize: 14,
+            ],
+          ),
+          if (userCountError != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 8.0),
+              child: Text(
+                userCountError!,
+                style: const TextStyle(
+                  color: Colors.red,
+                  fontSize: 12,
+                ),
+              ),
+            ),
+          const SizedBox(height: 20),
+          // Updated check-in/check-out cards with dynamic data
+          Row(
+            children: [
+              // Check-ins Card
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.grey.withValues(alpha: 0.1),
+                        spreadRadius: 1,
+                        blurRadius: 6,
+                        offset: const Offset(0, 2),
                       ),
-                    ),
-                    SizedBox(width: 4),
-                    Icon(
-                      Icons.keyboard_arrow_down,
-                      color: primaryBlue,
-                      size: 18,
-                    ),
-                  ],
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Icon(
+                        Icons.login,
+                        color: Colors.green,
+                        size: 24,
+                      ),
+                      const SizedBox(height: 12),
+                      if (isLoadingActions)
+                        const SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.green,
+                          ),
+                        )
+                      else if (actionCountError != null)
+                        const Text(
+                          '--',
+                          style: TextStyle(
+                            fontSize: 32,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.red,
+                          ),
+                        )
+                      else
+                        Text(
+                          '$todayCheckins',
+                          style: const TextStyle(
+                            fontSize: 32,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.green,
+                          ),
+                        ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Check-ins Today',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey[600],
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(width: 16),
+              // Check-outs Card
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.grey.withValues(alpha: 0.1),
+                        spreadRadius: 1,
+                        blurRadius: 6,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Icon(
+                        Icons.logout,
+                        color: Colors.red,
+                        size: 24,
+                      ),
+                      const SizedBox(height: 12),
+                      if (isLoadingActions)
+                        const SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.red,
+                          ),
+                        )
+                      else if (actionCountError != null)
+                        const Text(
+                          '--',
+                          style: TextStyle(
+                            fontSize: 32,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.red,
+                          ),
+                        )
+                      else
+                        Text(
+                          '$todayCheckouts',
+                          style: const TextStyle(
+                            fontSize: 32,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.red,
+                          ),
+                        ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Check-outs Today',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey[600],
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 20),
-          SizedBox(
-            height: 150,
-            width: double.infinity,
-            child: LineChart(
-              LineChartData(
-                gridData: FlGridData(
-                  show: true,
-                  drawVerticalLine: false,
-                  horizontalInterval: 1,
-                  getDrawingHorizontalLine: (value) {
-                    return FlLine(color: Colors.grey.shade200, strokeWidth: 1);
-                  },
-                ),
-                titlesData: FlTitlesData(
-                  show: true,
-                  rightTitles: AxisTitles(
-                    sideTitles: SideTitles(showTitles: false),
-                  ),
-                  topTitles: AxisTitles(
-                    sideTitles: SideTitles(showTitles: false),
-                  ),
-                  bottomTitles: AxisTitles(
-                    sideTitles: SideTitles(
-                      showTitles: true,
-                      reservedSize: 30,
-                      interval: 1,
-                      getTitlesWidget: (value, meta) {
-                        const style = TextStyle(
-                          color: textLight,
-                          fontWeight: FontWeight.w500,
-                          fontSize: 14,
-                        );
-                        String text;
-                        switch (value.toInt()) {
-                          case 0:
-                            text = 'Mon';
-                            break;
-                          case 2:
-                            text = 'Wed';
-                            break;
-                          case 4:
-                            text = 'Fri';
-                            break;
-                          case 6:
-                            text = 'Sun';
-                            break;
-                          default:
-                            return Container();
-                        }
-                        return Text(text, style: style);
-                      },
-                    ),
-                  ),
-                  leftTitles: AxisTitles(
-                    sideTitles: SideTitles(
-                      showTitles: true,
-                      interval: 2,
-                      reservedSize: 40,
-                      getTitlesWidget: (value, meta) {
-                        return Text(
-                          value.toInt().toString(),
-                          style: const TextStyle(
-                            color: textLight,
-                            fontWeight: FontWeight.w500,
-                            fontSize: 14,
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                ),
-                borderData: FlBorderData(show: false),
-                minX: 0,
-                maxX: 6,
-                minY: 0,
-                maxY: 8,
-                lineBarsData: [
-                  LineChartBarData(
-                    spots: const [
-                      FlSpot(0, 3),
-                      FlSpot(1, 5),
-                      FlSpot(2, 2),
-                      FlSpot(3, 2.5),
-                      FlSpot(4, 4),
-                      FlSpot(5, 7),
-                      FlSpot(6, 3),
-                    ],
-                    isCurved: true,
-                    color: primaryOrange,
-                    barWidth: 4,
-                    isStrokeCapRound: true,
-                    dotData: FlDotData(
-                      show: true,
-                      getDotPainter: (spot, percent, barData, index) {
-                        return FlDotCirclePainter(
-                          radius: 6,
-                          color: Colors.white,
-                          strokeWidth: 3,
-                          strokeColor: primaryOrange,
-                        );
-                      },
-                    ),
-                    belowBarData: BarAreaData(
-                      show: true,
-                      color: primaryOrange.withValues(alpha: 0.2),
-                    ),
-                  ),
-                ],
-                lineTouchData: LineTouchData(
-                  touchTooltipData: LineTouchTooltipData(
-                    tooltipRoundedRadius: 8,
-                    getTooltipItems: (List<LineBarSpot> touchedBarSpots) {
-                      return touchedBarSpots.map((barSpot) {
-                        return LineTooltipItem(
-                          '${barSpot.y.toInt()} users',
-                          const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                          ),
-                        );
-                      }).toList();
-                    },
-                  ),
+          // Add error message for actions if needed
+          if (actionCountError != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 8.0),
+              child: Text(
+                actionCountError!,
+                style: const TextStyle(
+                  color: Colors.red,
+                  fontSize: 12,
                 ),
               ),
             ),
-          ),
         ],
       ),
     );
@@ -289,7 +402,7 @@ class DashboardScreen extends StatelessWidget {
   }
 }
 
-// Our SecurityTeamWidget for the dashboard
+// Keep all your existing classes below (SecurityModel, SecurityTeamWidget, etc.)
 class SecurityModel {
   final String id;
   final String fullname;
@@ -329,7 +442,8 @@ class _SecurityTeamWidgetState extends State<SecurityTeamWidget> {
   static const Color textDark = Color(0xFF333333);
 
   static const String baseUrl = 'https://pse-parking.final25.psewmad.org/api';
-  static const String apiToken = '3|vufyxvd6e9qy0nVcUKpGVk9N3Y5gKV34oGfq8HAR605d44f1';
+  static const String apiToken =
+      '27|ofcrvfyfihYHIrDndaJ1VMpPOJcfvQW1BOl8R5X02ba5e9ac';
 
   List<SecurityModel> securities = [];
   bool isLoading = true;
@@ -341,7 +455,6 @@ class _SecurityTeamWidgetState extends State<SecurityTeamWidget> {
     fetchSecurities();
   }
 
-  // Add an error handling method
   void _handleApiError(dynamic error) {
     setState(() {
       if (error is http.ClientException) {
@@ -352,11 +465,9 @@ class _SecurityTeamWidgetState extends State<SecurityTeamWidget> {
       isLoading = false;
     });
 
-    // Log the error for debugging
     debugPrint('API Error: $error');
   }
 
-  // API Methods
   Future<void> fetchSecurities() async {
     setState(() {
       isLoading = true;
@@ -381,20 +492,21 @@ class _SecurityTeamWidgetState extends State<SecurityTeamWidget> {
 
         if (responseData is Map<String, dynamic> &&
             responseData.containsKey('data')) {
-          // Response is a Map with a 'data' key containing the list
           data = responseData['data'] as List<dynamic>;
         } else if (responseData is List) {
-          // Response is directly a list
           data = responseData;
         } else {
           throw Exception('Unexpected response format: $responseData');
         }
 
         setState(() {
-          securities = data
-              .map((item) => SecurityModel.fromJson(item as Map<String, dynamic>))
-              .toList();
-          // Limiting to only 4 items as requested
+          securities =
+              data
+                  .map(
+                    (item) =>
+                        SecurityModel.fromJson(item as Map<String, dynamic>),
+                  )
+                  .toList();
           if (securities.length > 4) {
             securities = securities.sublist(0, 4);
           }
@@ -402,7 +514,8 @@ class _SecurityTeamWidgetState extends State<SecurityTeamWidget> {
         });
       } else {
         setState(() {
-          errorMessage = 'Failed to load securities. Status code: ${response.statusCode}';
+          errorMessage =
+              'Failed to load securities. Status code: ${response.statusCode}';
           isLoading = false;
         });
       }
