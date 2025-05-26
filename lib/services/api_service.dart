@@ -33,8 +33,8 @@ class ApiService {
       'idcard': idcard,
       'vehicletype': vehicletype.toLowerCase(),
       'licenseplate': licenseplate,
-      'profilephoto': profilephoto?.name ?? '', // Send filename or empty string
-      'vehiclephoto': vehiclephoto?.name ?? '', // Send filename or empty string
+      'profilephoto': profilephoto?.name ?? '', 
+      'vehiclephoto': vehiclephoto?.name ?? '', 
     };
 
     // Log the request
@@ -69,41 +69,33 @@ class ApiService {
     // TODO: Implement the logic to fetch users
     throw UnimplementedError('fetchUsers() has not been implemented yet.');
   }
-   Future<LoginModel> loginUser({
-    required String email,
-    required String password,
-  }) async {
-    final url = Uri.parse('$baseUrl/api/login');
+Future<LoginModel> loginUser({
+  required String email,
+  required String password,
+}) async {
+  final url = Uri.parse('$baseUrl/api/login');
 
-    // Prepare JSON body
-    final body = {
-      'email': email,
-      'password': password,
-    };
+  final body = {
+    'email': email,
+    'password': password,
+  };
 
-    // Log the request
-    print('Sending login request to: $url');
-    print('Request Body: ${jsonEncode(body)}');
+  final response = await http.post(
+    url,
+    headers: {
+      'Authorization': 'Bearer $staticToken',
+      'Content-Type': 'application/json',
+    },
+    body: jsonEncode(body),
+  );
 
-    // Send JSON request
-    final response = await http.post(
-      url,
-      headers: {
-        'Authorization': 'Bearer $staticToken',
-        'Content-Type': 'application/json',
-      },
-      body: jsonEncode(body),
-    );
-
-    // Log the response
-    print('Response Status: ${response.statusCode}');
-
-    if (response.statusCode == 200 || response.statusCode == 201) {
-      final jsonResponse = jsonDecode(response.body);
-      final data = jsonResponse['data'] ?? jsonResponse;
-      return LoginModel.fromJson(data);
-    } else {
-      throw Exception('Failed to login: ${response.statusCode} - ${response.body}');
-    }
+  if (response.statusCode == 200 || response.statusCode == 201) {
+    final jsonResponse = jsonDecode(response.body);
+    final data = jsonResponse['data'] ?? jsonResponse;
+    return LoginModel.fromJson(data);
+  } else {
+    throw Exception('Failed to login: ${response.statusCode} - ${response.body}');
+  }
 }
+
 }
