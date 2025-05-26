@@ -1,5 +1,5 @@
 class Activity {
-  final int userId;
+  final String userId;
   final String action;
 
   Activity({

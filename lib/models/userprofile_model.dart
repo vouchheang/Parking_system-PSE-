@@ -1,20 +1,20 @@
 class UserpModel {
-  final String id;
   final String fullname;
-  final String idcard;
   final String email;
+  final String? password; // Made nullable since it's not in the response
   final String phonenumber;
+  final String idcard;
   final String vehicletype;
   final String licenseplate;
   final String profilephoto;
   final String vehiclephoto;
 
   UserpModel({
-    required this.id,
     required this.fullname,
-    required this.idcard,
     required this.email,
+    this.password, // Nullable
     required this.phonenumber,
+    required this.idcard,
     required this.vehicletype,
     required this.licenseplate,
     required this.profilephoto,
@@ -22,28 +22,31 @@ class UserpModel {
   });
 
   factory UserpModel.fromJson(Map<String, dynamic> json) {
+    // Handle nested structure from response
+    final user = json['user'] ?? {};
+    final profile = json['profile'] ?? {};
+
     return UserpModel(
-      id: json['id']?.toString() ?? '',
-      fullname: json['fullname'] ?? '',
-      idcard: json['idcard'] ?? '',
-      email: json['email'] ?? '',
-      phonenumber: json['phonenumber'] ?? '',
-      vehicletype: json['vehicletype'] ?? '',
-      licenseplate: json['licenseplate'] ?? '',
-      profilephoto: json['profilephoto'] ?? '',
-      vehiclephoto: json['vehiclephoto'] ?? '',
+      fullname: user['fullname'] ?? '',
+      email: user['email'] ?? '',
+      password: null, // Password is not returned in response
+      phonenumber: profile['phonenumber'] ?? '',
+      idcard: user['idcard'] ?? '',
+      vehicletype: profile['vehicletype'] ?? '',
+      licenseplate: profile['licenseplate'] ?? '',
+      profilephoto: profile['profilephoto'] ?? '',
+      vehiclephoto: profile['vehiclephoto'] ?? '',
     );
   }
-
   get profile => null;
 
   Map<String, dynamic> toJson() {
     return {
-      'id': id,
       'fullname': fullname,
-      'idcard': idcard,
       'email': email,
+      'password': password,
       'phonenumber': phonenumber,
+      'idcard': idcard,
       'vehicletype': vehicletype,
       'licenseplate': licenseplate,
       'profilephoto': profilephoto,
