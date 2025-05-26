@@ -1,15 +1,18 @@
 import 'dart:convert';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:parking_system/models/loginModel.dart';
 import 'package:parking_system/models/userlist_model.dart';
 import 'package:parking_system/models/userprofile_model.dart';
+import 'package:parking_system/services/storage_service.dart';
+
 
 class ApiService {
   static const String baseUrl = 'https://pse-parking.final25.psewmad.org';
-  static const String staticToken = '5|KgzNsnVTbbIhyiLNpD0R2v4WodiQO5oG7NshHPP81d26615f';
+  static const String staticToken = '5|KgzNsnVTbbIhyiLNpD0R2v4WodiQO5oG7NshHPP81d26615d';
 
-
+  final StorageService _storageService = StorageService();
 
   Future<UserpModel> registerUser({
     required String fullname,
@@ -24,7 +27,6 @@ class ApiService {
   }) async {
     final url = Uri.parse('$baseUrl/api/register');
 
-    // Prepare JSON body
     final body = {
       'fullname': fullname,
       'email': email,
@@ -33,15 +35,13 @@ class ApiService {
       'idcard': idcard,
       'vehicletype': vehicletype.toLowerCase(),
       'licenseplate': licenseplate,
-      'profilephoto': profilephoto?.name ?? '', 
-      'vehiclephoto': vehiclephoto?.name ?? '', 
+      'profilephoto': profilephoto?.name ?? '',
+      'vehiclephoto': vehiclephoto?.name ?? '',
     };
 
-    // Log the request
     print('Sending registration request to: $url');
     print('Request Body: ${jsonEncode(body)}');
 
-    // Send JSON request
     final response = await http.post(
       url,
       headers: {
@@ -51,9 +51,8 @@ class ApiService {
       body: jsonEncode(body),
     );
 
-    // Log the response
     print('Response Status: ${response.statusCode}');
-  
+
     if (response.statusCode == 200 || response.statusCode == 201) {
       final jsonResponse = jsonDecode(response.body);
       final data = jsonResponse['data'] ?? jsonResponse;
@@ -63,39 +62,123 @@ class ApiService {
     }
   }
 
-  fetchUserProfile(String userId) {}
+  Future<LoginModel> loginUser({
+    required String email,
+    required String password,
+  }) async {
+    final url = Uri.parse('$baseUrl/api/login');
 
+    final body = {
+      'email': email,
+      'password': password,
+    };
+
+    final response = await http.post(
+      url,
+      headers: {
+        'Authorization': 'Bearer $staticToken',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode(body),
+    );
+
+    print('Response Status: ${response.statusCode}');
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      final jsonResponse = jsonDecode(response.body);
+      final data = jsonResponse['data'] ?? jsonResponse;
+      return LoginModel.fromJson(data);
+    } else {
+      throw Exception('Failed to login: ${response.statusCode} - ${response.body}');
+    }
+  }
   Future<List<UserModel>> fetchUsers() async {
-    // TODO: Implement the logic to fetch users
-    throw UnimplementedError('fetchUsers() has not been implemented yet.');
+    final response = await http.get(
+      Uri.parse('$baseUrl/api/users'),
+      headers: {
+        'Authorization': 'Bearer $staticToken',
+        'Content-Type': 'application/json',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final jsonResponse = jsonDecode(response.body);
+      if (jsonResponse['data'] is List) {
+        return (jsonResponse['data'] as List)
+            .map((userJson) => UserModel.fromJson(userJson))
+            .toList();
+      } else {
+        throw Exception('Invalid response format: data is not a list');
+      }
+    } else {
+      throw Exception('Failed to load users: ${response.statusCode}');
+    }
   }
-Future<LoginModel> loginUser({
-  required String email,
-  required String password,
-}) async {
-  final url = Uri.parse('$baseUrl/api/login');
 
-  final body = {
-    'email': email,
-    'password': password,
-  };
+  // Fetch user profile from API
+  Future<UserpModel> fetchUserProfile(String id) async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/api/users/$id'),
+      headers: {
+        'Authorization': 'Bearer $staticToken',
+        'Content-Type': 'application/json',
+      },
+    );
 
-  final response = await http.post(
-    url,
-    headers: {
-      'Authorization': 'Bearer $staticToken',
-      'Content-Type': 'application/json',
-    },
-    body: jsonEncode(body),
-  );
+    if (response.statusCode == 200) {
+      final jsonResponse = jsonDecode(response.body);
+      final data = jsonResponse['data'] ?? jsonResponse;
 
-  if (response.statusCode == 200 || response.statusCode == 201) {
-    final jsonResponse = jsonDecode(response.body);
-    final data = jsonResponse['data'] ?? jsonResponse;
-    return LoginModel.fromJson(data);
-  } else {
-    throw Exception('Failed to login: ${response.statusCode} - ${response.body}');
+      await _storageService.saveProfileLocally(data); // ✅ Use StorageService
+      return UserpModel.fromJson(data);
+    } else {
+      throw Exception('Failed to load user: ${response.statusCode}');
+    }
+  }
+
+  Future<void> postActivity(String userId) async {
+    final url = Uri.parse('$baseUrl/api/activities');
+
+    final response = await http.post(
+      url,
+      headers: {
+        'Authorization': 'Bearer $staticToken',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({'user_id': userId}),
+    );
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      // Optionally parse response to show message
+      final responseData = jsonDecode(response.body);
+      if (responseData['success'] == true) {
+        // success, you can show a snackbar or update UI
+      } else {
+        throw Exception(responseData['message'] ?? 'Unknown error');
+      }
+    } else {
+      throw Exception('Failed to post activity');
+    }
+  }
+
+  // Public method: gets profile, auto-checks for internet
+  Future<UserpModel> getUserProfile(String id) async {
+    final isOnline = await checkInternet();
+    if (isOnline) {
+      return await fetchUserProfile(id);
+    } else {
+      final localProfile = await _storageService.loadProfileFromLocal();
+      if (localProfile != null) {
+        return localProfile;
+      }
+      throw Exception("No offline profile found.");
+    }
+  }
+
+  // Internet check
+  Future<bool> checkInternet() async {
+    var result = await Connectivity().checkConnectivity();
+    return result != ConnectivityResult.none;
   }
 }
 
-}

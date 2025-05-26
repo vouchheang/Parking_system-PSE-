@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:parking_system/screens/dashboard_screen.dart';
-
 import 'package:parking_system/screens/register._creen.dart';
 import 'package:parking_system/screens/login_screen.dart';
+
 
 void main() {
   runApp(const MyApp());
@@ -15,7 +15,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-       home:LoginScreen(),
+       home:ParkingRegistrationScreen()
     );
   }
 }
