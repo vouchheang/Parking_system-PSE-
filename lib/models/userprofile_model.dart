@@ -1,75 +1,56 @@
-class UserProfileModel {
-  final String userId;
+class UserpModel {
+  final String fullname;
+  final String email;
+  final String? password; // Made nullable since it's not in the response
+  final String phonenumber;
+  final String idcard;
   final String vehicletype;
   final String licenseplate;
-  final String phonenumber;
   final String profilephoto;
   final String vehiclephoto;
 
-  UserProfileModel({
-    required this.userId,
+  UserpModel({
+    required this.fullname,
+    required this.email,
+    this.password, // Nullable
+    required this.phonenumber,
+    required this.idcard,
     required this.vehicletype,
     required this.licenseplate,
-    required this.phonenumber,
     required this.profilephoto,
     required this.vehiclephoto,
   });
 
-  factory UserProfileModel.fromJson(Map<String, dynamic> json) {
-    return UserProfileModel(
-      userId: json['user_id'] ?? '',
-      vehicletype: json['vehicletype'] ?? '',
-      licenseplate: json['licenseplate'] ?? '',
-      phonenumber: json['phonenumber'] ?? '',
-      profilephoto: json['profilephoto'] ?? '',
-      vehiclephoto: json['vehiclephoto'] ?? '',
+  factory UserpModel.fromJson(Map<String, dynamic> json) {
+    // Handle nested structure from response
+    final user = json['user'] ?? {};
+    final profile = json['profile'] ?? {};
+
+    return UserpModel(
+      fullname: user['fullname'] ?? '',
+      email: user['email'] ?? '',
+      password: null, // Password is not returned in response
+      phonenumber: profile['phonenumber'] ?? '',
+      idcard: user['idcard'] ?? '',
+      vehicletype: profile['vehicletype'] ?? '',
+      licenseplate: profile['licenseplate'] ?? '',
+      profilephoto: profile['profilephoto'] ?? '',
+      vehiclephoto: profile['vehiclephoto'] ?? '',
     );
   }
+  get profile => null;
+
   Map<String, dynamic> toJson() {
     return {
-      'user_id': userId,
+      'fullname': fullname,
+      'email': email,
+      'password': password,
+      'phonenumber': phonenumber,
+      'idcard': idcard,
       'vehicletype': vehicletype,
       'licenseplate': licenseplate,
-      'phonenumber': phonenumber,
       'profilephoto': profilephoto,
       'vehiclephoto': vehiclephoto,
     };
   }
 }
-class UserpModel {
-  final String id;
-  final String fullname;
-  final String idcard;
-  final String email;
-  final UserProfileModel? profile;
-
-  UserpModel({
-    required this.id,
-    required this.fullname,
-    required this.idcard,
-    required this.email,
-    this.profile,
-  });
-
-  factory UserpModel.fromJson(Map<String, dynamic> json) {
-    return UserpModel(
-      id: json['id'] ?? '',
-      fullname: json['fullname'] ?? '',
-      idcard: json['idcard'] ?? '',
-      email: json['email'] ?? '',
-      profile: json['profile'] != null
-          ? UserProfileModel.fromJson(json['profile'])
-          : null,
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'fullname': fullname,
-      'idcard': idcard,
-      'profile': profile?.toJson(),
-    };
-  }
-}
-
