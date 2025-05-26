@@ -16,7 +16,7 @@ import 'package:parking_system/services/storage_service.dart';
 class ApiService {
   static const String baseUrl = 'https://pse-parking.final25.psewmad.org';
   static const String staticToken =
-      '37|qzVEdYKkHDzrFEygDCq0LR8C6NqSifKWc7Kanw6Sbff81141';
+      '45|3z3xiPS7K5jkc2Xo3056U8zjJNjO4zEGVx0Gm4Fd42e81a62';
   final StorageService _storageService = StorageService();
 
   Future<UserCount?> fetchUserCount() async {
@@ -38,7 +38,7 @@ class ApiService {
 
   Future<TodayActionCount?> fetchTodayActionCount() async {
     final response = await http.get(
-      Uri.parse('http://127.0.0.1:8000/api/today-actions'),
+      Uri.parse('$baseUrl/api/today-actions'),
     );
 
     if (response.statusCode == 200) {
@@ -200,7 +200,7 @@ Future<UserpModel> registerUser({
       throw Exception('Failed to login: ${response.statusCode} - ${response.body}');
     }
   }
-  Future<List<UserModel>> fetchUsers() async {
+    Future<List<UserModel>> fetchUsers() async {
     final response = await http.get(
       Uri.parse('$baseUrl/api/users'),
       headers: {
@@ -225,7 +225,7 @@ Future<UserpModel> registerUser({
 
   Future<void> updateUserProfile(String id, UserpfModel user) async {
     final response = await http.put(
-      Uri.parse('$baseUrl/api/users/$id'),
+      Uri.parse('http://127.0.0.1:8000/api/users/$id'),
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
@@ -247,7 +247,7 @@ Future<UserpModel> registerUser({
   }
 
   // Fetch user profile from API
-  Future<UserpModel> fetchUserProfile(String id) async {
+    Future<UserpModel> fetchUserProfile(String id) async {
     final response = await http.get(
       Uri.parse('$baseUrl/api/users/$id'),
       headers: {
@@ -266,6 +266,7 @@ Future<UserpModel> registerUser({
       throw Exception('Failed to load user: ${response.statusCode}');
     }
   }
+
 
   Future<void> postActivity(String userId) async {
     final url = Uri.parse('$baseUrl/api/activities');

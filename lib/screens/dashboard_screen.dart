@@ -1,11 +1,8 @@
-import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:parking_system/controllers/usercount_controller.dart';
 import 'package:parking_system/screens/securities_team.dart';
-import 'package:parking_system/controllers/user_controller.dart';
-import 'package:parking_system/models/usercount_model.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
