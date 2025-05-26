@@ -124,7 +124,7 @@ Future<void> _submitForm() async {
   String? _validateEmail(String? value) {
     if (value == null || value.isEmpty) return 'Email is required';
     final regex = RegExp(r'^[\w.-]+@institute\.pse\.ngo$');
-    if (!regex.hasMatch(value)) return 'Email must be @institute.pse.ngo';
+    if (!regex.hasMatch(value)) return 'Please enter a valid PSE email address';
     return null;
   }
 

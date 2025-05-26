@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:parking_system/controllers/LoginController.dart';
 import 'package:parking_system/services/api_service.dart';
-import 'package:parking_system/models/loginModel.dart';
 import 'package:provider/provider.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -46,7 +45,6 @@ class _LoginScreenState extends State<LoginScreen> {
                   const SizedBox(height: 16),
                   _buildForgotPassword(),
                   const SizedBox(height: 20),
-                  _buildTokenDisplay(),
                 ],
               ),
             ),
@@ -179,8 +177,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     );
                     if (success) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Login successful! Token: ${controller.authToken}'),
+                        const SnackBar(
+                          content: Text('Login successful!'),
                           backgroundColor: Colors.green,
                         ),
                       );
@@ -228,24 +226,6 @@ class _LoginScreenState extends State<LoginScreen> {
           fontWeight: FontWeight.w500,
         ),
       ),
-    );
-  }
-
-  Widget _buildTokenDisplay() {
-    return Consumer<LoginController>(
-      builder: (context, controller, child) {
-        return controller.authToken != null
-            ? Text(
-                'Stored Token: ${controller.authToken}',
-                style: const TextStyle(
-                  fontSize: 14,
-                  color: Color(0xFF116692),
-                  fontWeight: FontWeight.w400,
-                ),
-                textAlign: TextAlign.center,
-              )
-            : const SizedBox.shrink();
-      },
     );
   }
 }
