@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:parking_system/screens/afterscan_screen.dart';
 import 'package:parking_system/screens/navigation.dart';
+import 'package:parking_system/screens/otp_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -13,7 +13,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-       home:NavigationScreen()
+       home:OtpScreen()
     );
   }
 }

@@ -25,7 +25,6 @@ class UserProfileModel {
       vehiclephoto: json['vehiclephoto'] ?? '',
     );
   }
-
   Map<String, dynamic> toJson() {
     return {
       'user_id': userId,

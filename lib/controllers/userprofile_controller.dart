@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:parking_system/models/userp_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:parking_system/models/userprofile_model.dart';
@@ -6,6 +7,16 @@ import 'package:parking_system/services/api_service.dart';
 
 class UserProfileController {
   final ApiService _apiService = ApiService();
+
+  Future<void> updateUserProfile(
+    String id,
+    Map<String, dynamic> updatedProfileData,
+  ) {
+    return _apiService.updateUserProfile(
+      id,
+      UserpfModel.fromJson(updatedProfileData),
+    );
+  }
 
   /// Online fetch from API
   Future<UserpModel> fetchUserProfile(String userId) async {
@@ -36,16 +47,17 @@ class UserProfileController {
   }
 
   Future<UserpModel> getUserProfile(String userId) async {
-  try {
-    // Try fetching from the API first
-    return await fetchUserProfile(userId);
-  } catch (e) {
-    // If API fetch fails, try loading from local cache
-    final localProfile = await loadProfileFromLocal();
-    if (localProfile != null) return localProfile;
-    // If no local data, rethrow or throw a custom exception
-    throw Exception("Failed to fetch profile online and no offline profile found.");
+    try {
+      // Try fetching from the API first
+      return await fetchUserProfile(userId);
+    } catch (e) {
+      // If API fetch fails, try loading from local cache
+      final localProfile = await loadProfileFromLocal();
+      if (localProfile != null) return localProfile;
+      // If no local data, rethrow or throw a custom exception
+      throw Exception(
+        "Failed to fetch profile online and no offline profile found.",
+      );
+    }
   }
-}
-
 }

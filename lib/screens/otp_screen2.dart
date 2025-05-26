@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
+import 'package:parking_system/controllers/sentotp_controller.dart';
+import 'package:parking_system/models/otp_model.dart';
 
 class VerificationScreen extends StatefulWidget {
-  final String email; 
+  final String email;
 
   const VerificationScreen({super.key, required this.email});
 
@@ -20,7 +20,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
 
   final List<FocusNode> _focusNodes = List.generate(6, (index) => FocusNode());
 
-  bool _isLoading = false; 
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -40,48 +40,53 @@ class _VerificationScreenState extends State<VerificationScreen> {
   }
 
   Future<void> _verifyCode() async {
-    String code = _controllers.map((c) => c.text).join();
+  String code = _controllers.map((c) => c.text).join();
 
-    if (code.length < 6) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please enter the 6 digit code")),
-      );
-      return;
-    }
+  if (code.length < 6) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("Please enter the 6 digit code")),
+    );
+    return;
+  }
 
-    setState(() {
-      _isLoading = true;
-    });
+  setState(() {
+    _isLoading = true;
+  });
 
-    final url = Uri.parse("http://localhost:8000/verify_otp.php");
+  try {
+    final otpController = OtpController();
+    OtpResponse? response = await otpController.verifyOtp(
+      email: widget.email, 
+      otp: code
+    );
 
-    try {
-      final response = await http.post(
-        url,
-        body: {'email': widget.email, 'otp': code},
-      );
-
-      final result = json.decode(response.body);
-
-      if (result['status'] == 'verified') {
+    if (response != null) {
+      if (response.status == 'success') {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Code verified successfully!")),
+          SnackBar(content: Text(response.message)),
         );
+        // Navigate to next screen or perform success action
+        // Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => NextScreen()));
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Invalid or expired code")),
+          SnackBar(content: Text(response.message)),
         );
       }
-    } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text("Error: $e")));
-    } finally {
-      setState(() {
-        _isLoading = false;
-      });
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Failed to verify code. Please try again.")),
+      );
     }
+  } catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text("Error: $e")),
+    );
+  } finally {
+    setState(() {
+      _isLoading = false;
+    });
   }
+}
 
   @override
   Widget build(BuildContext context) {

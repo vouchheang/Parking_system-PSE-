@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:parking_system/controllers/activity_controller.dart';
+import 'package:parking_system/models/activity_model.dart';
 import 'package:parking_system/screens/camera_screen.dart';
 
 class SecurityScreen extends StatefulWidget {
@@ -10,111 +12,24 @@ class SecurityScreen extends StatefulWidget {
 
 class _SecurityScreenState extends State<SecurityScreen> {
   final TextEditingController _searchController = TextEditingController();
-  String _searchQuery = ''; // Changed from final to mutable
-  String _selectedFilter = 'All'; // Changed from final to mutable
+  String _searchQuery = '';
+  String _selectedFilter = 'All';
 
-  final List<Map<String, dynamic>> _activitiesData = [
-    {
-      "name": "Nguon Chandaravit",
-      "action": "Checked-in",
-      "time": "30/05/25",
-    },
-    {
-      "name": "Mom Vouchheang",
-      "action": "Checked-in",
-      "time": "29/05/25",
-    },
-    {
-      "name": "Thorn Thearith",
-      "action": "Checkout",
-      "time": "29/05/25",
-    },
-    {
-      "name": "Vann Tiang",
-      "action": "Checked-in",
-      "time": "29/05/25",
-    },
-    {
-      "name": "Sang In",
-      "action": "Checked-in",
-      "time": "29/05/25",
-    },
-    {
-      "name": "Nguon Chandaravit",
-      "action": "Checked-in",
-      "time": "30/05/25",
-    },
-    {
-      "name": "Mom Vouchheang",
-      "action": "Checked-in",
-      "time": "29/05/25",
-    },
-    {
-      "name": "Thorn Thearith",
-      "action": "Checkout",
-      "time": "29/05/25",
-    },
-    {
-      "name": "Vann Tiang",
-      "action": "Checked-in",
-      "time": "29/05/25",
-    },
-    {
-      "name": "Sang In",
-      "action": "Checked-in",
-      "time": "29/05/25",
-    },
-     {
-      "name": "Nguon Chandaravit",
-      "action": "Checked-in",
-      "time": "30/05/25",
-    },
-    {
-      "name": "Mom Vouchheang",
-      "action": "Checked-in",
-      "time": "29/05/25",
-    },
-    {
-      "name": "Thorn Thearith",
-      "action": "Checkout",
-      "time": "29/05/25",
-    },
-    {
-      "name": "Vann Tiang",
-      "action": "Checked-in",
-      "time": "29/05/25",
-    },
-    {
-      "name": "Sang In",
-      "action": "Checked-in",
-      "time": "29/05/25",
-    },
-    {
-      "name": "Nguon Chandaravit",
-      "action": "Checked-in",
-      "time": "30/05/25",
-    },
-    {
-      "name": "Mom Vouchheang",
-      "action": "Checked-in",
-      "time": "29/05/25",
-    },
-    {
-      "name": "Thorn Thearith",
-      "action": "Checkout",
-      "time": "29/05/25",
-    },
-    {
-      "name": "Vann Tiang",
-      "action": "Checked-in",
-      "time": "29/05/25",
-    },
-    {
-      "name": "Sang In",
-      "action": "Checked-in",
-      "time": "29/05/25",
-    },
-  ];
+  // Replace hardcoded data with API data
+  List<Activity> _activitiesData = [];
+  bool _isLoading = true;
+  String? _error;
+
+  // Add your controller instance
+  late final ActivityController
+  _controller; // Replace 'YourController' with your actual controller class name
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = ActivityController(); // Initialize your controller
+    _fetchActivities();
+  }
 
   @override
   void dispose() {
@@ -122,36 +37,61 @@ class _SecurityScreenState extends State<SecurityScreen> {
     super.dispose();
   }
 
-  List<Map<String, dynamic>> get filteredData {
+  Future<void> _fetchActivities() async {
+    try {
+      setState(() {
+        _isLoading = true;
+        _error = null;
+      });
+
+      final activities = await _controller.fetchActivities();
+
+      setState(() {
+        _activitiesData = activities;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _error = e.toString();
+        _isLoading = false;
+      });
+    }
+  }
+
+  List<Activity> get filteredData {
     if (_searchQuery.isEmpty) {
       if (_selectedFilter == 'All') {
         return _activitiesData;
       } else {
         return _activitiesData
-            .where((entry) => entry['action'] == _selectedFilter)
+            .where((entry) => entry.action == _selectedFilter)
             .toList();
       }
     }
 
     var filtered =
         _activitiesData.where((entry) {
-          return entry['name'].toLowerCase().contains(
+          return entry.user.fullname.toLowerCase().contains(
                 _searchQuery.toLowerCase(),
               ) ||
-              
-              entry['action'].toLowerCase().contains(
-                _searchQuery.toLowerCase(),
-              );
+              entry.action.toLowerCase().contains(_searchQuery.toLowerCase());
         }).toList();
 
     if (_selectedFilter != 'All') {
       filtered =
-          filtered
-              .where((entry) => entry['action'] == _selectedFilter)
-              .toList();
+          filtered.where((entry) => entry.action == _selectedFilter).toList();
     }
 
     return filtered;
+  }
+
+  String _formatDate(String dateString) {
+    try {
+      DateTime dateTime = DateTime.parse(dateString);
+      return '${dateTime.day.toString().padLeft(2, '0')}/${dateTime.month.toString().padLeft(2, '0')}/${dateTime.year.toString().substring(2)}';
+    } catch (e) {
+      return dateString;
+    }
   }
 
   @override
@@ -284,11 +224,16 @@ class _SecurityScreenState extends State<SecurityScreen> {
                   color: Color(0xFF212121),
                 ),
               ),
-             
+              // Add refresh button
+              IconButton(
+                onPressed: _fetchActivities,
+                icon: const Icon(Icons.refresh),
+                color: const Color(0xFF0277BD),
+              ),
             ],
           ),
           const SizedBox(height: 15),
-          
+
           // Search bar and filter dropdown
           Row(
             children: [
@@ -310,18 +255,25 @@ class _SecurityScreenState extends State<SecurityScreen> {
                     decoration: InputDecoration(
                       hintText: 'Search by name',
                       hintStyle: TextStyle(color: Colors.grey.shade500),
-                      prefixIcon: Icon(Icons.search, color: Colors.grey.shade500),
-                      suffixIcon: _searchQuery.isNotEmpty
-                          ? IconButton(
-                              icon: Icon(Icons.clear, color: Colors.grey.shade500),
-                              onPressed: () {
-                                setState(() {
-                                  _searchController.clear();
-                                  _searchQuery = '';
-                                });
-                              },
-                            )
-                          : null,
+                      prefixIcon: Icon(
+                        Icons.search,
+                        color: Colors.grey.shade500,
+                      ),
+                      suffixIcon:
+                          _searchQuery.isNotEmpty
+                              ? IconButton(
+                                icon: Icon(
+                                  Icons.clear,
+                                  color: Colors.grey.shade500,
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    _searchController.clear();
+                                    _searchQuery = '';
+                                  });
+                                },
+                              )
+                              : null,
                       border: InputBorder.none,
                       contentPadding: const EdgeInsets.symmetric(vertical: 12),
                     ),
@@ -341,19 +293,26 @@ class _SecurityScreenState extends State<SecurityScreen> {
                   child: DropdownButton<String>(
                     value: _selectedFilter,
                     icon: const Icon(Icons.arrow_drop_down),
-                    style: const TextStyle(color: Color(0xFF424242), fontSize: 16),
+                    style: const TextStyle(
+                      color: Color(0xFF424242),
+                      fontSize: 16,
+                    ),
                     onChanged: (String? newValue) {
                       setState(() {
                         _selectedFilter = newValue!;
                       });
                     },
-                    items: <String>['All', 'Checked-in', 'Checkout']
-                        .map<DropdownMenuItem<String>>((String value) {
-                      return DropdownMenuItem<String>(
-                        value: value,
-                        child: Text(value),
-                      );
-                    }).toList(),
+                    items:
+                        <String>[
+                          'All',
+                          'checkedin',
+                          'checkout',
+                        ].map<DropdownMenuItem<String>>((String value) {
+                          return DropdownMenuItem<String>(
+                            value: value,
+                            child: Text(value),
+                          );
+                        }).toList(),
                   ),
                 ),
               ),
@@ -392,6 +351,14 @@ class _SecurityScreenState extends State<SecurityScreen> {
   }
 
   Widget _buildTableContent() {
+    if (_isLoading) {
+      return _buildLoadingState();
+    }
+
+    if (_error != null) {
+      return _buildErrorState();
+    }
+
     return filteredData.isEmpty
         ? _buildNoResultsFound()
         : ListView.builder(
@@ -399,6 +366,60 @@ class _SecurityScreenState extends State<SecurityScreen> {
           itemBuilder: (context, index) => _buildTableRow(filteredData[index]),
         );
   }
+
+  Widget _buildLoadingState() {
+    return const Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          CircularProgressIndicator(
+            valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF0277BD)),
+          ),
+          SizedBox(height: 20),
+          Text(
+            'Loading activities...',
+            style: TextStyle(fontSize: 18, color: Color(0xFF616161)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildErrorState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.error_outline, size: 70, color: Colors.red.shade400),
+          const SizedBox(height: 20),
+          Text(
+            'Failed to load activities',
+            style: TextStyle(
+              fontSize: 20,
+              color: Colors.red.shade600,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(height: 10),
+          Text(
+            _error ?? 'Unknown error occurred',
+            style: TextStyle(color: Colors.grey.shade500, fontSize: 14),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 20),
+          ElevatedButton(
+            onPressed: _fetchActivities,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF0277BD),
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Retry'),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildNoResultsFound() {
     return Center(
       child: Column(
@@ -424,7 +445,7 @@ class _SecurityScreenState extends State<SecurityScreen> {
     );
   }
 
-  Widget _buildTableRow(Map<String, dynamic> entry) {
+  Widget _buildTableRow(Activity entry) {
     return Container(
       decoration: BoxDecoration(
         border: Border(
@@ -441,7 +462,7 @@ class _SecurityScreenState extends State<SecurityScreen> {
               child: Padding(
                 padding: const EdgeInsets.only(left: 16),
                 child: Text(
-                  entry['name'],
+                  entry.user.fullname,
                   style: const TextStyle(
                     fontWeight: FontWeight.w500,
                     fontSize: 16,
@@ -454,7 +475,7 @@ class _SecurityScreenState extends State<SecurityScreen> {
             Expanded(
               flex: 2,
               child: Text(
-                entry['action'],
+                entry.action,
                 style: const TextStyle(color: Color(0xFF424242), fontSize: 16),
               ),
             ),
@@ -462,7 +483,7 @@ class _SecurityScreenState extends State<SecurityScreen> {
             Expanded(
               flex: 2,
               child: Text(
-                entry['time'],
+                _formatDate(entry.createdAt),
                 style: const TextStyle(color: Color(0xFF424242), fontSize: 16),
               ),
             ),

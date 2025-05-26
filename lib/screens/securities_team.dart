@@ -62,7 +62,7 @@ class _SecuritiesTeamState extends State<SecuritiesTeam> {
 
   static const String baseUrl = 'https://pse-parking.final25.psewmad.org';
   static const String apiToken =
-      '5|KgzNsnVTbbIhyiLNpD0R2v4WodiQO5oG7NshHPP81d26615f';
+      '27|ofcrvfyfihYHIrDndaJ1VMpPOJcfvQW1BOl8R5X02ba5e9ac';
 
   List<SecurityModel> securities = [];
   bool isLoading = true;

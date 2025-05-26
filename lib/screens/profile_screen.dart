@@ -13,11 +13,101 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   final UserProfileController _userProfileController = UserProfileController();
   late Future<UserpModel> _userProfileData;
+  bool _isEditing = false;
+  bool _isUpdating = false;
+
+  // Text controllers for editing (removed email controller since it's read-only)
+  final TextEditingController _fullnameController = TextEditingController();
+  final TextEditingController _idcardController = TextEditingController();
+  final TextEditingController _phonenumberController = TextEditingController();
+  final TextEditingController _vehicletypeController = TextEditingController();
+  final TextEditingController _licenseplateController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
     _userProfileData = _userProfileController.getUserProfile(widget.userId);
+  }
+
+  @override
+  void dispose() {
+    _fullnameController.dispose();
+    _idcardController.dispose();
+    _phonenumberController.dispose();
+    _vehicletypeController.dispose();
+    _licenseplateController.dispose();
+    super.dispose();
+  }
+
+  void _populateControllers(UserpModel profile) {
+    _fullnameController.text = profile.fullname;
+    _idcardController.text = profile.idcard;
+    _phonenumberController.text = profile.profile?.phonenumber ?? '';
+    _vehicletypeController.text = profile.profile?.vehicletype ?? '';
+    _licenseplateController.text = profile.profile?.licenseplate ?? '';
+  }
+
+  void _onEditPressed() {
+    setState(() {
+      _isEditing = true;
+    });
+  }
+
+  void _onCancelEdit() {
+    setState(() {
+      _isEditing = false;
+    });
+  }
+
+  Future<void> _onSavePressed() async {
+    setState(() {
+      _isUpdating = true;
+    });
+
+    try {
+      Map<String, dynamic> updatedProfileData = {
+        'fullname': _fullnameController.text.trim(),
+        'idcard': _idcardController.text.trim(),
+        'vehicletype': _vehicletypeController.text.trim(),
+        'licenseplate': _licenseplateController.text.trim(),
+        'phonenumber': _phonenumberController.text.trim(),
+        'profilephoto': '', // You might want to handle photo updates separately
+        'vehiclephoto': '', // You might want to handle photo updates separately
+      };
+
+      // Update the user profile with the new data
+      await _userProfileController.updateUserProfile(widget.userId, updatedProfileData);
+      
+      // Refresh the profile data
+      setState(() {
+        _userProfileData = _userProfileController.getUserProfile(widget.userId);
+        _isEditing = false;
+      });
+
+      // Show success message
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Profile updated successfully!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      // Show error message
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to update profile: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      setState(() {
+        _isUpdating = false;
+      });
+    }
   }
 
   @override
@@ -38,6 +128,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
               // Profile data is available
               UserpModel profile = snapshot.data!;
+              
+              // Populate controllers when not editing (to get fresh data)
+              if (!_isEditing) {
+                _populateControllers(profile);
+              }
 
               return SingleChildScrollView(
                 child: Column(
@@ -70,9 +165,108 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                       'assets/images/profile.png',
                                     ),
                           ),
+                          const SizedBox(height: 12),
+                          
+                          // Edit/Save/Cancel buttons
+                          if (!_isEditing)
+                            ElevatedButton.icon(
+                              onPressed: _onEditPressed,
+                              icon: const Icon(
+                                Icons.edit,
+                                size: 18,
+                                color: Color(0xFF116692),
+                              ),
+                              label: const Text(
+                                'Edit',
+                                style: TextStyle(
+                                  color: Color(0xFF116692),
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color.fromARGB(255, 255, 197, 197),
+                                elevation: 2,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 20,
+                                  vertical: 8,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                              ),
+                            )
+                          else
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                ElevatedButton.icon(
+                                  onPressed: _isUpdating ? null : _onSavePressed,
+                                  icon: _isUpdating 
+                                    ? const SizedBox(
+                                        width: 18,
+                                        height: 18,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          color: Color(0xFF116692),
+                                        ),
+                                      )
+                                    : const Icon(
+                                        Icons.save,
+                                        size: 18,
+                                        color: Color(0xFF116692),
+                                      ),
+                                  label: Text(
+                                    _isUpdating ? 'Saving...' : 'Save',
+                                    style: const TextStyle(
+                                      color: Color(0xFF116692),
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.green[100],
+                                    elevation: 2,
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 20,
+                                      vertical: 8,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(20),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                ElevatedButton.icon(
+                                  onPressed: _isUpdating ? null : _onCancelEdit,
+                                  icon: const Icon(
+                                    Icons.cancel,
+                                    size: 18,
+                                    color: Colors.red,
+                                  ),
+                                  label: const Text(
+                                    'Cancel',
+                                    style: TextStyle(
+                                      color: Colors.red,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.red[100],
+                                    elevation: 2,
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 20,
+                                      vertical: 8,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(20),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          
                           const SizedBox(height: 16),
                           Text(
-                            profile.fullname,
+                            _isEditing ? _fullnameController.text : profile.fullname,
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 25,
@@ -99,26 +293,52 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            InfoRow(label: 'Fullname', value: profile.fullname),
+                            _isEditing
+                                ? EditableInfoRow(
+                                    label: 'Fullname',
+                                    controller: _fullnameController,
+                                  )
+                                : InfoRow(label: 'Fullname', value: profile.fullname),
                             const SizedBox(height: 12),
-                            InfoRow(
-                              label: 'Phone Number',
-                              value: profile.profile?.phonenumber ?? '',
-                            ),
+                            _isEditing
+                                ? EditableInfoRow(
+                                    label: 'Phone Number',
+                                    controller: _phonenumberController,
+                                  )
+                                : InfoRow(
+                                    label: 'Phone Number',
+                                    value: profile.profile?.phonenumber ?? '',
+                                  ),
                             const SizedBox(height: 12),
-                            InfoRow(
-                              label: 'Vehicle Type',
-                              value: profile.profile?.vehicletype ?? 'N/A',
-                            ),
+                            _isEditing
+                                ? EditableInfoRow(
+                                    label: 'Vehicle Type',
+                                    controller: _vehicletypeController,
+                                  )
+                                : InfoRow(
+                                    label: 'Vehicle Type',
+                                    value: profile.profile?.vehicletype ?? 'N/A',
+                                  ),
                             const SizedBox(height: 12),
-                            InfoRow(
-                              label: 'License Plate',
-                              value: profile.profile?.licenseplate ?? 'N/A',
-                            ),
+                            _isEditing
+                                ? EditableInfoRow(
+                                    label: 'License Plate',
+                                    controller: _licenseplateController,
+                                  )
+                                : InfoRow(
+                                    label: 'License Plate',
+                                    value: profile.profile?.licenseplate ?? 'N/A',
+                                  ),
                             const SizedBox(height: 12),
-                            InfoRow(label: 'ID Card', value: profile.idcard),
+                            _isEditing
+                                ? EditableInfoRow(
+                                    label: 'ID Card',
+                                    controller: _idcardController,
+                                  )
+                                : InfoRow(label: 'ID Card', value: profile.idcard),
                             const SizedBox(height: 12),
-                            InfoRow(label: 'Email', value: profile.email),
+                            // Email is always read-only, regardless of edit mode
+                            ReadOnlyInfoRow(label: 'Email', value: profile.email),
                             const SizedBox(height: 24),
                             const Text(
                               'Vehicle Photo',
@@ -193,6 +413,95 @@ class InfoRow extends StatelessWidget {
             value,
             textAlign: TextAlign.right,
             style: const TextStyle(fontSize: 16),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class EditableInfoRow extends StatelessWidget {
+  final String label;
+  final TextEditingController controller;
+
+  const EditableInfoRow({
+    super.key,
+    required this.label,
+    required this.controller,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        SizedBox(
+          width: 130,
+          child: Text(
+            '$label :',
+            style: const TextStyle(
+              color: Color(0xFF116692),
+              fontWeight: FontWeight.bold,
+              fontSize: 15,
+            ),
+          ),
+        ),
+        Expanded(
+          child: TextField(
+            controller: controller,
+            textAlign: TextAlign.right,
+            style: const TextStyle(fontSize: 16),
+            decoration: const InputDecoration(
+              border: UnderlineInputBorder(),
+              isDense: true,
+              contentPadding: EdgeInsets.symmetric(vertical: 8),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// New widget for read-only fields with visual distinction
+class ReadOnlyInfoRow extends StatelessWidget {
+  final String label;
+  final String value;
+
+  const ReadOnlyInfoRow({super.key, required this.label, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        SizedBox(
+          width: 130,
+          child: Row(
+            children: [
+              Text(
+                '$label :',
+                style: const TextStyle(
+                  color: Color(0xFF116692),
+                  fontWeight: FontWeight.bold,
+                  fontSize: 15,
+                ),
+              ),
+              const SizedBox(width: 4),
+              const Icon(
+                Icons.lock,
+                size: 14,
+                color: Colors.grey,
+              ),
+            ],
+          ),
+        ),
+        Expanded(
+          child: Text(
+            value,
+            textAlign: TextAlign.right,
+            style: const TextStyle(
+              fontSize: 16,
+              color: Colors.grey,
+            ),
           ),
         ),
       ],

@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
-
-import 'package:parking_system/screens/otp_screen2.dart';
+import 'package:parking_system/controllers/sentotp_controller.dart';
+import 'package:parking_system/screens/otp_screen2.dart'; // your verification screen
 
 class OtpScreen extends StatefulWidget {
   const OtpScreen({super.key});
@@ -13,7 +11,9 @@ class OtpScreen extends StatefulWidget {
 
 class _OtpScreenState extends State<OtpScreen> {
   final TextEditingController _emailController = TextEditingController();
-  bool _isLoading = false; // ✅ Step 1: loading state
+  final OtpController _otpController = OtpController();
+
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -22,54 +22,47 @@ class _OtpScreenState extends State<OtpScreen> {
   }
 
   Future<void> _requestOtp() async {
-    final email = _emailController.text.trim();
+  final email = _emailController.text.trim();
 
-    if (email.isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Please enter your email')));
-      return;
-    }
+  if (email.isEmpty) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Please enter your email')),
+    );
+    return;
+  }
 
-    setState(() {
-      _isLoading = true; // ✅ show loading
-    });
+  setState(() => _isLoading = true);
 
-    final url = Uri.parse('http://localhost:8000/send_otp.php');
+  try {
+    final response = await _otpController.sendOtp(email: email);
+    print("Raw response: ${response?.status}");
 
-    try {
-      final response = await http.post(
-        url,
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'email': email}),
+    if (response != null && response.status == 'success') {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(response.message ?? 'No message available')),
       );
 
-      if (response.statusCode == 200) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('OTP sent to your email')));
-
+      if (mounted) {
         Navigator.push(
           context,
           MaterialPageRoute(
             builder: (context) => VerificationScreen(email: email),
           ),
         );
-      } else {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Failed to request OTP')));
       }
-    } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Error: $e')));
-    } finally {
-      setState(() {
-        _isLoading = false; // ✅ hide loading
-      });
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(response?.message ?? 'Failed to send OTP')),
+      );
     }
+  } catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Error: $e')),
+    );
+  } finally {
+    setState(() => _isLoading = false);
   }
+}
 
   @override
   Widget build(BuildContext context) {
@@ -110,7 +103,7 @@ class _OtpScreenState extends State<OtpScreen> {
                 ),
                 const SizedBox(height: 16),
                 const Text(
-                  'Enter your email to continue, we will\nsend you OTP verify.',
+                  'Enter your email to continue, we will\nsend you OTP to verify.',
                   textAlign: TextAlign.center,
                   style: TextStyle(color: Colors.white, fontSize: 14),
                 ),
@@ -138,8 +131,7 @@ class _OtpScreenState extends State<OtpScreen> {
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed:
-                        _isLoading ? null : _requestOtp, // ✅ Disable if loading
+                    onPressed: _isLoading ? null : _requestOtp,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFFF9A825),
                       foregroundColor: Colors.white,
