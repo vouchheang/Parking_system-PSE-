@@ -29,7 +29,7 @@ class _ParkingRegistrationScreenState extends State<ParkingRegistrationScreen> {
   XFile? _vehicleImage;
   XFile? _profileImage;
   bool _isLoading = false; // Added for loading state
-  final List<String> _vehicleTypes = ['Motor', 'Car', 'Bicycle', 'Other'];
+  final List<String> _vehicleTypes = ['Motor', 'Car'];
 
   Future<void> _pickVehicleImage() async {
     final ImagePicker picker = ImagePicker();

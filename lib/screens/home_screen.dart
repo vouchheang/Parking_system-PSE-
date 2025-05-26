@@ -287,11 +287,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                     ),
                                     HomeScreen.buildInfoRow(
                                       "Phone",
-                                      profile.profile?.phonenumber ?? '',
+                                      profile.phonenumber,
                                     ),
                                     HomeScreen.buildInfoRow(
                                       "License Plate",
-                                      profile.profile?.licenseplate ?? '',
+                                      profile.licenseplate,
                                     ),
                                   ],
                                 );

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:parking_system/controllers/sentotp_controller.dart';
 import 'package:parking_system/models/otp_model.dart';
+import 'package:parking_system/screens/home_screen.dart';
 
 class VerificationScreen extends StatefulWidget {
   final String email;
@@ -19,8 +20,10 @@ class _VerificationScreenState extends State<VerificationScreen> {
   );
 
   final List<FocusNode> _focusNodes = List.generate(6, (index) => FocusNode());
+  final OtpController _otpController = OtpController();
 
   bool _isLoading = false;
+  bool _isResending = false;
 
   @override
   void dispose() {
@@ -39,54 +42,112 @@ class _VerificationScreenState extends State<VerificationScreen> {
     }
   }
 
-  Future<void> _verifyCode() async {
-  String code = _controllers.map((c) => c.text).join();
+  // Extracted and modified _requestOtp function for resend functionality
+  Future<void> _resendOtp() async {
+    final email = widget.email;
 
-  if (code.length < 6) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Please enter the 6 digit code")),
-    );
-    return;
-  }
+    if (email.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Email not available')),
+      );
+      return;
+    }
 
-  setState(() {
-    _isLoading = true;
-  });
+    setState(() => _isResending = true);
 
-  try {
-    final otpController = OtpController();
-    OtpResponse? response = await otpController.verifyOtp(
-      email: widget.email, 
-      otp: code
-    );
+    try {
+      final response = await _otpController.sendOtp(email: email);
+      print("Raw response: ${response?.status}");
 
-    if (response != null) {
-      if (response.status == 'success') {
+      if (response != null && response.status == 'success') {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(response.message)),
+          SnackBar(
+            content: Text(response.message ?? 'OTP sent successfully'),
+            backgroundColor: Colors.green,
+          ),
         );
-        // Navigate to next screen or perform success action
-        // Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => NextScreen()));
+        
+        // Clear the existing OTP fields
+        for (var controller in _controllers) {
+          controller.clear();
+        }
+        // Focus on first field
+        FocusScope.of(context).requestFocus(_focusNodes[0]);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(response.message)),
+          SnackBar(
+            content: Text(response?.message ?? 'Failed to resend OTP'),
+            backgroundColor: Colors.red,
+          ),
         );
       }
-    } else {
+    } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Failed to verify code. Please try again.")),
+        SnackBar(
+          content: Text('Error: $e'),
+          backgroundColor: Colors.red,
+        ),
       );
+    } finally {
+      setState(() => _isResending = false);
     }
-  } catch (e) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text("Error: $e")),
-    );
-  } finally {
-    setState(() {
-      _isLoading = false;
-    });
   }
-}
+
+  Future<void> _verifyCode() async {
+    String code = _controllers.map((c) => c.text).join();
+
+    if (code.length < 6) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please enter the 6-digit code")),
+      );
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final otpController = OtpController();
+      VerifyOtp? response = await otpController.verifyOtp(
+        email: widget.email,
+        otp: code,
+      );
+
+      if (response != null && response.statusCode == 200) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Verification successful!"),
+            backgroundColor: Colors.green,
+          ),
+        );
+
+        // Navigate to HomeScreen and remove all previous routes
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (context) => const HomeScreen('0990573d-7941-486c-bc3c-537dd0661bc9')),
+          (Route<dynamic> route) => false,
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(response?.message ?? "Verification failed. Please try again."),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Error: $e"),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -163,17 +224,30 @@ class _VerificationScreenState extends State<VerificationScreen> {
             ),
             const SizedBox(height: 20),
             TextButton(
-              onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text("Resend code functionality not implemented"),
-                  ),
-                );
-              },
-              child: const Text(
-                'Resend Code',
-                style: TextStyle(color: Color(0xFFF39C12), fontSize: 16),
-              ),
+              onPressed: _isResending ? null : _resendOtp,
+              child: _isResending
+                  ? const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFF39C12)),
+                          ),
+                        ),
+                        SizedBox(width: 8),
+                        Text(
+                          'Resending...',
+                          style: TextStyle(color: Color(0xFFF39C12), fontSize: 16),
+                        ),
+                      ],
+                    )
+                  : const Text(
+                      'Resend Code',
+                      style: TextStyle(color: Color(0xFFF39C12), fontSize: 16),
+                    ),
             ),
             const SizedBox(height: 20),
             Padding(
@@ -189,13 +263,12 @@ class _VerificationScreenState extends State<VerificationScreen> {
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),
-                  child:
-                      _isLoading
-                          ? const CircularProgressIndicator(color: Colors.white)
-                          : const Text(
-                            'Verify',
-                            style: TextStyle(color: Colors.white, fontSize: 18),
-                          ),
+                  child: _isLoading
+                      ? const CircularProgressIndicator(color: Colors.white)
+                      : const Text(
+                          'Verify',
+                          style: TextStyle(color: Colors.white, fontSize: 18),
+                        ),
                 ),
               ),
             ),

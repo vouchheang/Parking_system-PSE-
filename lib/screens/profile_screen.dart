@@ -42,9 +42,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void _populateControllers(UserpModel profile) {
     _fullnameController.text = profile.fullname;
     _idcardController.text = profile.idcard;
-    _phonenumberController.text = profile.profile?.phonenumber ?? '';
-    _vehicletypeController.text = profile.profile?.vehicletype ?? '';
-    _licenseplateController.text = profile.profile?.licenseplate ?? '';
+    _phonenumberController.text = profile.phonenumber;
+    _vehicletypeController.text = profile.vehicletype;
+    _licenseplateController.text = profile.licenseplate;
   }
 
   void _onEditPressed() {
@@ -76,8 +76,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
       };
 
       // Update the user profile with the new data
-      await _userProfileController.updateUserProfile(widget.userId, updatedProfileData);
-      
+      await _userProfileController.updateUserProfile(
+        widget.userId,
+        updatedProfileData,
+      );
+
       // Refresh the profile data
       setState(() {
         _userProfileData = _userProfileController.getUserProfile(widget.userId);
@@ -128,7 +131,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
               // Profile data is available
               UserpModel profile = snapshot.data!;
-              
+
               // Populate controllers when not editing (to get fresh data)
               if (!_isEditing) {
                 _populateControllers(profile);
@@ -156,9 +159,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           CircleAvatar(
                             radius: 80,
                             backgroundImage:
-                                profile.profile?.profilephoto != null
+                                // ignore: unnecessary_null_comparison
+                                profile.profilephoto != null
                                     ? NetworkImage(
-                                          profile.profile!.profilephoto,
+                                          profile.profilephoto,
                                         )
                                         as ImageProvider
                                     : const AssetImage(
@@ -166,7 +170,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                     ),
                           ),
                           const SizedBox(height: 12),
-                          
+
                           // Edit/Save/Cancel buttons
                           if (!_isEditing)
                             ElevatedButton.icon(
@@ -184,7 +188,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 ),
                               ),
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color.fromARGB(255, 255, 197, 197),
+                                backgroundColor: const Color.fromARGB(
+                                  255,
+                                  255,
+                                  197,
+                                  197,
+                                ),
                                 elevation: 2,
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 20,
@@ -200,21 +209,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 ElevatedButton.icon(
-                                  onPressed: _isUpdating ? null : _onSavePressed,
-                                  icon: _isUpdating 
-                                    ? const SizedBox(
-                                        width: 18,
-                                        height: 18,
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2,
-                                          color: Color(0xFF116692),
-                                        ),
-                                      )
-                                    : const Icon(
-                                        Icons.save,
-                                        size: 18,
-                                        color: Color(0xFF116692),
-                                      ),
+                                  onPressed:
+                                      _isUpdating ? null : _onSavePressed,
+                                  icon:
+                                      _isUpdating
+                                          ? const SizedBox(
+                                            width: 18,
+                                            height: 18,
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 2,
+                                              color: Color(0xFF116692),
+                                            ),
+                                          )
+                                          : const Icon(
+                                            Icons.save,
+                                            size: 18,
+                                            color: Color(0xFF116692),
+                                          ),
                                   label: Text(
                                     _isUpdating ? 'Saving...' : 'Save',
                                     style: const TextStyle(
@@ -263,10 +274,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 ),
                               ],
                             ),
-                          
+
                           const SizedBox(height: 16),
                           Text(
-                            _isEditing ? _fullnameController.text : profile.fullname,
+                            _isEditing
+                                ? _fullnameController.text
+                                : profile.fullname,
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 25,
@@ -295,50 +308,59 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           children: [
                             _isEditing
                                 ? EditableInfoRow(
-                                    label: 'Fullname',
-                                    controller: _fullnameController,
-                                  )
-                                : InfoRow(label: 'Fullname', value: profile.fullname),
-                            const SizedBox(height: 12),
-                            _isEditing
-                                ? EditableInfoRow(
-                                    label: 'Phone Number',
-                                    controller: _phonenumberController,
-                                  )
+                                  label: 'Fullname',
+                                  controller: _fullnameController,
+                                )
                                 : InfoRow(
-                                    label: 'Phone Number',
-                                    value: profile.profile?.phonenumber ?? '',
-                                  ),
+                                  label: 'Fullname',
+                                  value: profile.fullname,
+                                ),
                             const SizedBox(height: 12),
                             _isEditing
                                 ? EditableInfoRow(
-                                    label: 'Vehicle Type',
-                                    controller: _vehicletypeController,
-                                  )
+                                  label: 'Phone Number',
+                                  controller: _phonenumberController,
+                                )
                                 : InfoRow(
-                                    label: 'Vehicle Type',
-                                    value: profile.profile?.vehicletype ?? 'N/A',
-                                  ),
+                                  label: 'Phone Number',
+                                  value: profile.phonenumber,
+                                ),
                             const SizedBox(height: 12),
                             _isEditing
                                 ? EditableInfoRow(
-                                    label: 'License Plate',
-                                    controller: _licenseplateController,
-                                  )
+                                  label: 'Vehicle Type',
+                                  controller: _vehicletypeController,
+                                )
                                 : InfoRow(
-                                    label: 'License Plate',
-                                    value: profile.profile?.licenseplate ?? 'N/A',
-                                  ),
+                                  label: 'Vehicle Type',
+                                  value: profile.vehicletype,
+                                ),
                             const SizedBox(height: 12),
                             _isEditing
                                 ? EditableInfoRow(
-                                    label: 'ID Card',
-                                    controller: _idcardController,
-                                  )
-                                : InfoRow(label: 'ID Card', value: profile.idcard),
+                                  label: 'License Plate',
+                                  controller: _licenseplateController,
+                                )
+                                : InfoRow(
+                                  label: 'License Plate',
+                                  value: profile.licenseplate,
+                                ),
+                            const SizedBox(height: 12),
+                            _isEditing
+                                ? EditableInfoRow(
+                                  label: 'ID Card',
+                                  controller: _idcardController,
+                                )
+                                : InfoRow(
+                                  label: 'ID Card',
+                                  value: profile.idcard,
+                                ),
                             const SizedBox(height: 12),
                             // Email is always read-only, regardless of edit mode
-                            ReadOnlyInfoRow(label: 'Email', value: profile.email),
+                            ReadOnlyInfoRow(
+                              label: 'Email',
+                              value: profile.email,
+                            ),
                             const SizedBox(height: 24),
                             const Text(
                               'Vehicle Photo',
@@ -350,8 +372,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             ),
                             const SizedBox(height: 8),
                             VehiclePhotoBox(
-                              vehiclePhotoUrl:
-                                  profile.profile?.vehiclephoto ?? '',
+                              vehiclePhotoUrl: profile.vehiclephoto,
                             ),
                           ],
                         ),
@@ -486,11 +507,7 @@ class ReadOnlyInfoRow extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 4),
-              const Icon(
-                Icons.lock,
-                size: 14,
-                color: Colors.grey,
-              ),
+              const Icon(Icons.lock, size: 14, color: Colors.grey),
             ],
           ),
         ),
@@ -498,10 +515,7 @@ class ReadOnlyInfoRow extends StatelessWidget {
           child: Text(
             value,
             textAlign: TextAlign.right,
-            style: const TextStyle(
-              fontSize: 16,
-              color: Colors.grey,
-            ),
+            style: const TextStyle(fontSize: 16, color: Colors.grey),
           ),
         ),
       ],

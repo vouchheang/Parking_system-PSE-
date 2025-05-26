@@ -1,7 +1,7 @@
 class UserpModel {
   final String fullname;
   final String email;
-  final String? password; // Made nullable since it's not in the response
+  final String? password;
   final String phonenumber;
   final String idcard;
   final String vehicletype;
@@ -12,7 +12,7 @@ class UserpModel {
   UserpModel({
     required this.fullname,
     required this.email,
-    this.password, // Nullable
+    this.password,
     required this.phonenumber,
     required this.idcard,
     required this.vehicletype,
@@ -22,23 +22,20 @@ class UserpModel {
   });
 
   factory UserpModel.fromJson(Map<String, dynamic> json) {
-    // Handle nested structure from response
-    final user = json['user'] ?? {};
     final profile = json['profile'] ?? {};
 
     return UserpModel(
-      fullname: user['fullname'] ?? '',
-      email: user['email'] ?? '',
-      password: null, // Password is not returned in response
+      fullname: json['fullname'] ?? '',
+      email: json['email'] ?? '',
+      password: null,
       phonenumber: profile['phonenumber'] ?? '',
-      idcard: user['idcard'] ?? '',
+      idcard: json['idcard'] ?? '',
       vehicletype: profile['vehicletype'] ?? '',
       licenseplate: profile['licenseplate'] ?? '',
       profilephoto: profile['profilephoto'] ?? '',
       vehiclephoto: profile['vehiclephoto'] ?? '',
     );
   }
-  get profile => null;
 
   Map<String, dynamic> toJson() {
     return {
