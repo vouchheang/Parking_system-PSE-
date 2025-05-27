@@ -5,7 +5,7 @@ import 'package:parking_system/screens/register._creen.dart';
 import 'package:provider/provider.dart';
 import 'package:parking_system/controllers/login_controller.dart';
 import 'package:parking_system/services/api_service.dart';
-import 'package:parking_system/screens/splash_screen.dart';
+
 
 void main() {
   runApp(MyApp());
@@ -29,6 +29,9 @@ class MyApp extends StatelessWidget {
         home: SplashScreen(),
         debugShowCheckedModeBanner: false,
       ),
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+       home:ParkingRegistrationScreen()
     );
   }
 }
