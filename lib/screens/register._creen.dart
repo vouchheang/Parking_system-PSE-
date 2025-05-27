@@ -4,8 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter/foundation.dart' show Uint8List, kIsWeb;
 import 'package:parking_system/screens/home_screen.dart';
-import 'package:parking_system/services/api_service.dart'; 
-
+import 'package:parking_system/services/api_service.dart';
 
 class ParkingRegistrationScreen extends StatefulWidget {
   const ParkingRegistrationScreen({super.key});
@@ -70,11 +69,13 @@ class _ParkingRegistrationScreenState extends State<ParkingRegistrationScreen> {
 
     if (isFormValid && areImagesValid) {
       setState(() {
-        _isLoading = true; 
+        _isLoading = true;
       });
 
       try {
-        print('Submitting: fullname=${_fullnameController.text}, email=${_emailController.text}');
+        print(
+          'Submitting: fullname=${_fullnameController.text}, email=${_emailController.text}',
+        );
         final user = await _apiService.registerUser(
           fullname: _fullnameController.text.trim(),
           email: _emailController.text.trim(),
@@ -93,7 +94,6 @@ class _ParkingRegistrationScreenState extends State<ParkingRegistrationScreen> {
           const SnackBar(content: Text('Registration submitted successfully!')),
         );
 
-       
         _formKey.currentState!.reset();
         _fullnameController.clear();
         _emailController.clear();
@@ -106,32 +106,36 @@ class _ParkingRegistrationScreenState extends State<ParkingRegistrationScreen> {
           _profileImage = null;
           _vehicleImage = null;
         });
-        
 
-await Future.delayed(const Duration(seconds: 1));
+        await Future.delayed(const Duration(seconds: 1));
 
-// Navigate to homepage
-if (mounted) {
-  Navigator.of(context).pushReplacement(
-    MaterialPageRoute(
-      builder: (_) => const HomeScreen(''), // Replace with your actual HomePage widget
-    ),
-  );
-}
+        // Navigate to homepage
+        if (mounted) {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder:
+                  (_) => const HomeScreen(
+                    '',
+                  ), // Replace with your actual HomePage widget
+            ),
+          );
+        }
       } catch (e) {
         print('Registration error: $e');
         String errorMessage = 'Registration failed. Please try again.';
         if (e.toString().contains('email has already been taken')) {
-          errorMessage = 'The email is already registered. Please use a different email.';
+          errorMessage =
+              'The email is already registered. Please use a different email.';
         } else if (e.toString().contains('Image upload failed')) {
-          errorMessage = 'Failed to upload images to Cloudinary. Please check your connection.';
+          errorMessage =
+              'Failed to upload images to Cloudinary. Please check your connection.';
         }
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(errorMessage)),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(errorMessage)));
       } finally {
         setState(() {
-          _isLoading = false; 
+          _isLoading = false;
         });
       }
     }
@@ -141,7 +145,8 @@ if (mounted) {
     if (value == null || value.trim().isEmpty) return 'Fullname is required';
     if (value.length < 4) return 'Fullname must be at least 4 characters';
     final regex = RegExp(r'^[a-zA-Z\s]+$');
-    if (!regex.hasMatch(value)) return 'Fullname can only contain letters and spaces';
+    if (!regex.hasMatch(value))
+      return 'Fullname can only contain letters and spaces';
     return null;
   }
 
@@ -161,14 +166,16 @@ if (mounted) {
   String? _validateLicensePlate(String? value) {
     final regex = RegExp(r'^\d{1,2}[A-Z]{1,3}-\d{3,4}$');
     if (value == null || value.isEmpty) return 'License plate is required';
-    if (!regex.hasMatch(value)) return 'Please enter a valid Cambodian license plate';
+    if (!regex.hasMatch(value))
+      return 'Please enter a valid Cambodian license plate';
     return null;
   }
 
   String? _validateIDCard(String? value) {
     final regex = RegExp(r'^\d{4,5}-\d{1,2}$');
     if (value == null || value.isEmpty) return 'ID Card is required';
-    if (!regex.hasMatch(value)) return 'Please enter a valid PSE staff ID card number';
+    if (!regex.hasMatch(value))
+      return 'Please enter a valid PSE staff ID card number';
     return null;
   }
 
@@ -202,36 +209,38 @@ if (mounted) {
                         shape: BoxShape.circle,
                         border: Border.all(color: Colors.white, width: 2),
                       ),
-                      child: _profileImage != null
-                          ? ClipRRect(
-                              borderRadius: BorderRadius.circular(40),
-                              child: kIsWeb
-                                  ? Image.network(
-                                      _profileImage!.path,
-                                      fit: BoxFit.cover,
-                                      width: 80,
-                                      height: 80,
-                                    )
-                                  : FutureBuilder<Uint8List>(
-                                      future: _profileImage!.readAsBytes(),
-                                      builder: (context, snapshot) {
-                                        if (snapshot.hasData) {
-                                          return Image.memory(
-                                            snapshot.data!,
-                                            fit: BoxFit.cover,
-                                            width: 80,
-                                            height: 80,
-                                          );
-                                        }
-                                        return const CircularProgressIndicator();
-                                      },
-                                    ),
-                            )
-                          : const Icon(
-                              Icons.person,
-                              size: 40,
-                              color: Color(0xFF0D6E9E),
-                            ),
+                      child:
+                          _profileImage != null
+                              ? ClipRRect(
+                                borderRadius: BorderRadius.circular(40),
+                                child:
+                                    kIsWeb
+                                        ? Image.network(
+                                          _profileImage!.path,
+                                          fit: BoxFit.cover,
+                                          width: 80,
+                                          height: 80,
+                                        )
+                                        : FutureBuilder<Uint8List>(
+                                          future: _profileImage!.readAsBytes(),
+                                          builder: (context, snapshot) {
+                                            if (snapshot.hasData) {
+                                              return Image.memory(
+                                                snapshot.data!,
+                                                fit: BoxFit.cover,
+                                                width: 80,
+                                                height: 80,
+                                              );
+                                            }
+                                            return const CircularProgressIndicator();
+                                          },
+                                        ),
+                              )
+                              : const Icon(
+                                Icons.person,
+                                size: 40,
+                                color: Color(0xFF0D6E9E),
+                              ),
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -382,12 +391,15 @@ if (mounted) {
             contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           ),
           icon: const Icon(Icons.keyboard_arrow_down),
-          items: _vehicleTypes
-              .map((String type) => DropdownMenuItem<String>(
-                    value: type,
-                    child: Text(type),
-                  ))
-              .toList(),
+          items:
+              _vehicleTypes
+                  .map(
+                    (String type) => DropdownMenuItem<String>(
+                      value: type,
+                      child: Text(type),
+                    ),
+                  )
+                  .toList(),
           onChanged: (String? newValue) {
             if (newValue != null) {
               setState(() {
@@ -420,34 +432,36 @@ if (mounted) {
               borderRadius: BorderRadius.circular(8),
               border: Border.all(color: const Color(0xFFD0D7DE)),
             ),
-            child: _vehicleImage != null
-                ? ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: kIsWeb
-                        ? Image.network(
-                            _vehicleImage!.path,
-                            fit: BoxFit.cover,
-                          )
-                        : FutureBuilder<Uint8List>(
-                            future: _vehicleImage!.readAsBytes(),
-                            builder: (context, snapshot) {
-                              if (snapshot.hasData) {
-                                return Image.memory(
-                                  snapshot.data!,
-                                  fit: BoxFit.cover,
-                                );
-                              }
-                              return const CircularProgressIndicator();
-                            },
-                          ),
-                  )
-                : const Center(
-                    child: Icon(
-                      Icons.camera_alt,
-                      color: Color(0xFF8FA3AD),
-                      size: 48,
+            child:
+                _vehicleImage != null
+                    ? ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child:
+                          kIsWeb
+                              ? Image.network(
+                                _vehicleImage!.path,
+                                fit: BoxFit.cover,
+                              )
+                              : FutureBuilder<Uint8List>(
+                                future: _vehicleImage!.readAsBytes(),
+                                builder: (context, snapshot) {
+                                  if (snapshot.hasData) {
+                                    return Image.memory(
+                                      snapshot.data!,
+                                      fit: BoxFit.cover,
+                                    );
+                                  }
+                                  return const CircularProgressIndicator();
+                                },
+                              ),
+                    )
+                    : const Center(
+                      child: Icon(
+                        Icons.camera_alt,
+                        color: Color(0xFF8FA3AD),
+                        size: 48,
+                      ),
                     ),
-                  ),
           ),
         ),
       ],

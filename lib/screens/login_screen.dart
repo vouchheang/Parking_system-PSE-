@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:parking_system/controllers/LoginController.dart';
+import 'package:parking_system/controllers/login_controller.dart';
+import 'package:parking_system/screens/navigation.dart';
 import 'package:parking_system/services/api_service.dart';
 import 'package:provider/provider.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+  final String role;
+
+  const LoginScreen({super.key, required this.role});
+  
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -150,10 +154,7 @@ class _LoginScreenState extends State<LoginScreen> {
               const SizedBox(height: 8),
               Text(
                 controller.errorMessage!,
-                style: const TextStyle(
-                  color: Colors.red,
-                  fontSize: 14,
-                ),
+                style: const TextStyle(color: Colors.red, fontSize: 14),
               ),
             ],
           ],
@@ -169,40 +170,57 @@ class _LoginScreenState extends State<LoginScreen> {
           width: double.infinity,
           child: ElevatedButton(
             onPressed: controller.isLoading
-                ? null
-                : () async {
-                    final success = await controller.login(
-                      _emailController.text,
-                      _passwordController.text,
-                    );
-                    if (success) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Login successful!'),
-                          backgroundColor: Colors.green,
-                        ),
-                      );
-                    } else {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(controller.errorMessage ?? 'Login failed'),
-                          backgroundColor: Colors.red,
-                        ),
-                      );
-                    }
-                  },
+    ? null
+    : () async {
+        print(_emailController.text);
+        print(_passwordController.text);
+        final success = await controller.login(
+          _emailController.text,
+          _passwordController.text,
+        );
+        if (success) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Login successful!'),
+              backgroundColor: Colors.green,
+            ),
+          );
+
+          // Navigate to the next page
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => NavigationScreen('', role: '',)),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                controller.errorMessage ?? 'Login failed',
+              ),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      },
+
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.orange,
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
             ),
-            child: controller.isLoading
-                ? const CircularProgressIndicator(color: Colors.white)
-                : const Text(
-                    'Login',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
+            child:
+                controller.isLoading
+                    ? const CircularProgressIndicator(color: Colors.white)
+                    : const Text(
+                      'Login',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
           ),
         );
       },

@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:parking_system/controllers/usercount_controller.dart';
 import 'package:parking_system/screens/securities_team.dart';
+import 'package:parking_system/services/storage_service.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -21,12 +22,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
   final UserCountController _userController = UserCountController();
   // Add controller for today's actions
   final UserCountController _todayActionController = UserCountController();
-  
+
   // User count variables
   int totalUsers = 0;
   bool isLoadingUsers = true;
   String? userCountError;
-  
+
   // Today's action variables
   int todayCheckins = 0;
   int todayCheckouts = 0;
@@ -98,10 +99,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   // Add refresh method for both data sources
   Future<void> _refreshAllData() async {
-    await Future.wait([
-      _fetchUserCount(),
-      _fetchTodayActions(),
-    ]);
+    await Future.wait([_fetchUserCount(), _fetchTodayActions()]);
   }
 
   @override
@@ -210,10 +208,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               padding: const EdgeInsets.only(top: 8.0),
               child: Text(
                 userCountError!,
-                style: const TextStyle(
-                  color: Colors.red,
-                  fontSize: 12,
-                ),
+                style: const TextStyle(color: Colors.red, fontSize: 12),
               ),
             ),
           const SizedBox(height: 20),
@@ -239,11 +234,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Icon(
-                        Icons.login,
-                        color: Colors.green,
-                        size: 24,
-                      ),
+                      const Icon(Icons.login, color: Colors.green, size: 24),
                       const SizedBox(height: 12),
                       if (isLoadingActions)
                         const SizedBox(
@@ -305,11 +296,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Icon(
-                        Icons.logout,
-                        color: Colors.red,
-                        size: 24,
-                      ),
+                      const Icon(Icons.logout, color: Colors.red, size: 24),
                       const SizedBox(height: 12),
                       if (isLoadingActions)
                         const SizedBox(
@@ -359,10 +346,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               padding: const EdgeInsets.only(top: 8.0),
               child: Text(
                 actionCountError!,
-                style: const TextStyle(
-                  color: Colors.red,
-                  fontSize: 12,
-                ),
+                style: const TextStyle(color: Colors.red, fontSize: 12),
               ),
             ),
         ],
@@ -439,8 +423,7 @@ class _SecurityTeamWidgetState extends State<SecurityTeamWidget> {
   static const Color textDark = Color(0xFF333333);
 
   static const String baseUrl = 'https://pse-parking.final25.psewmad.org/api';
-  static const String apiToken =
-      '27|ofcrvfyfihYHIrDndaJ1VMpPOJcfvQW1BOl8R5X02ba5e9ac';
+  final StorageService _storageService = StorageService();
 
   List<SecurityModel> securities = [];
   bool isLoading = true;
@@ -466,6 +449,10 @@ class _SecurityTeamWidgetState extends State<SecurityTeamWidget> {
   }
 
   Future<void> fetchSecurities() async {
+    final token = await _storageService.getToken();
+    if (token == null) {
+      throw Exception('Token not found');
+    }
     setState(() {
       isLoading = true;
       errorMessage = null;
@@ -477,7 +464,7 @@ class _SecurityTeamWidgetState extends State<SecurityTeamWidget> {
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
-          'Authorization': 'Bearer $apiToken',
+          'Authorization': 'Bearer $token',
         },
       );
 

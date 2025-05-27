@@ -15,14 +15,12 @@ class _SecurityScreenState extends State<SecurityScreen> {
   String _searchQuery = '';
   String _selectedFilter = 'All';
 
-  // Replace hardcoded data with API data
   List<Activity> _activitiesData = [];
   bool _isLoading = true;
   String? _error;
 
-  // Add your controller instance
   late final ActivityController
-  _controller; // Replace 'YourController' with your actual controller class name
+  _controller; 
 
   @override
   void initState() {
@@ -141,7 +139,7 @@ class _SecurityScreenState extends State<SecurityScreen> {
             borderRadius: BorderRadius.circular(20),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFF0277BD).withOpacity(0.3),
+                color: const Color(0xFF0277BD).withValues(alpha: 0.3),
                 spreadRadius: 2,
                 blurRadius: 8,
                 offset: const Offset(0, 3),
@@ -175,7 +173,7 @@ class _SecurityScreenState extends State<SecurityScreen> {
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.2),
+            color: Colors.grey.withValues(alpha: 0.2),
             spreadRadius: 1,
             blurRadius: 3,
             offset: const Offset(0, 2),

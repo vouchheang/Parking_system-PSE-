@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:parking_system/services/storage_service.dart';
 
 class SecurityModel {
   final String id;
@@ -61,8 +62,7 @@ class _SecuritiesTeamState extends State<SecuritiesTeam> {
   static const Color textLight = Color(0xFF666666);
 
   static const String baseUrl = 'https://pse-parking.final25.psewmad.org';
-  static const String apiToken =
-      '27|ofcrvfyfihYHIrDndaJ1VMpPOJcfvQW1BOl8R5X02ba5e9ac';
+  final StorageService _storageService = StorageService();
 
   List<SecurityModel> securities = [];
   bool isLoading = true;
@@ -106,6 +106,10 @@ class _SecuritiesTeamState extends State<SecuritiesTeam> {
 
   // API Methods
   Future<void> fetchSecurities() async {
+    final token = await _storageService.getToken();
+    if (token == null) {
+      throw Exception('Token not found');
+    }
     setState(() {
       isLoading = true;
       errorMessage = null;
@@ -117,7 +121,7 @@ class _SecuritiesTeamState extends State<SecuritiesTeam> {
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
-          'Authorization': 'Bearer $apiToken',
+          'Authorization': 'Bearer $token',
         },
       );
 
@@ -166,13 +170,17 @@ class _SecuritiesTeamState extends State<SecuritiesTeam> {
     String idcard,
     String password,
   ) async {
+    final token = await _storageService.getToken();
+    if (token == null) {
+      throw Exception('Token not found');
+    }
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/api/security'),
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
-          'Authorization': 'Bearer $apiToken',
+          'Authorization': 'Bearer $token',
         },
         body: json.encode({
           'fullname': fullname,
@@ -209,13 +217,17 @@ class _SecuritiesTeamState extends State<SecuritiesTeam> {
   }
 
   Future<void> deleteSecurityById(String id) async {
+    final token = await _storageService.getToken();
+    if (token == null) {
+      throw Exception('Token not found');
+    }
     try {
       final response = await http.delete(
         Uri.parse('$baseUrl/api/security/$id'),
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
-          'Authorization': 'Bearer $apiToken',
+          'Authorization': 'Bearer $token',
         },
       );
 
@@ -234,6 +246,10 @@ class _SecuritiesTeamState extends State<SecuritiesTeam> {
   }
 
   Future<void> updateSecurityStatus(String id, String status) async {
+    final token = await _storageService.getToken();
+    if (token == null) {
+      throw Exception('Token not found');
+    }
     try {
       final security = securities.firstWhere((element) => element.id == id);
 
@@ -242,7 +258,7 @@ class _SecuritiesTeamState extends State<SecuritiesTeam> {
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
-          'Authorization': 'Bearer $apiToken',
+          'Authorization': 'Bearer $token',
         },
         body: json.encode({
           'fullname': security.fullname,

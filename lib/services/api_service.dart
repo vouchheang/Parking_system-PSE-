@@ -8,24 +8,25 @@ import 'package:parking_system/models/usercount_model.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:parking_system/models/loginModel.dart';
 import 'package:parking_system/models/userlist_model.dart';
-import 'package:parking_system/models/userp_model.dart';
+import 'package:parking_system/models/user_model.dart';
 import 'package:parking_system/models/userprofile_model.dart';
 import 'package:parking_system/services/storage_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-
 class ApiService {
   static const String baseUrl = 'https://pse-parking.final25.psewmad.org';
-  static const String staticToken =
-      '67|gW1H4TmlmjkvrNBNo1qWBIErMMVLwVFobChIloTz03c2907a';
   final StorageService _storageService = StorageService();
 
   Future<UserCount?> fetchUserCount() async {
+    final token = await _storageService.getToken();
+    if (token == null) {
+      throw Exception('Token not found');
+    }
     final response = await http.get(
       Uri.parse('$baseUrl/api/users/count'),
       headers: {
-        'Authorization': 'Bearer $staticToken',
-        'Accept': 'application/json',
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
       },
     );
 
@@ -38,8 +39,16 @@ class ApiService {
   }
 
   Future<TodayActionCount?> fetchTodayActionCount() async {
+    final token = await _storageService.getToken(); // Retrieve token
+    if (token == null) {
+      throw Exception('Token not found');
+    }
     final response = await http.get(
       Uri.parse('$baseUrl/api/today-actions'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
     );
 
     if (response.statusCode == 200) {
@@ -51,10 +60,14 @@ class ApiService {
   }
 
   Future<List<Activity>> fetchActivities() async {
+    final token = await _storageService.getToken(); // Retrieve token
+    if (token == null) {
+      throw Exception('Token not found');
+    }
     final response = await http.get(
       Uri.parse('$baseUrl/api/activities'),
       headers: {
-        'Authorization': 'Bearer $staticToken',
+        'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
       },
     );
@@ -67,71 +80,7 @@ class ApiService {
     }
   }
 
-// Future<UserpModel> registerUser({
-//     required String fullname,
-//     required String email,
-//     required String password,
-//     required String phonenumber,
-//     required String idcard,
-//     required String vehicletype,
-//     required String licenseplate,
-//     required XFile? profilephoto,
-//     required XFile? vehiclephoto,
-//   }) async {
-//     final url = Uri.parse('$baseUrl/api/register');
 
-//     try {
-//       // Upload images to Cloudinary and get URLs
-//       String? profilePhotoUrl;
-//       String? vehiclePhotoUrl;
-
-//       if (profilephoto != null) {
-//         profilePhotoUrl = await uploadImageToCloudinary(profilephoto);
-//       }
-//       if (vehiclephoto != null) {
-//         vehiclePhotoUrl = await uploadImageToCloudinary(vehiclephoto);
-//       }
-
-//       // Prepare the request body with Cloudinary URLs
-//       final body = {
-//         'fullname': fullname,
-//         'email': email,
-//         'password': password,
-//         'phonenumber': phonenumber,
-//         'idcard': idcard,
-//         'vehicletype': vehicletype.toLowerCase(),
-//         'licenseplate': licenseplate,
-//         'profilephoto': profilePhotoUrl ?? '',
-//         'vehiclephoto': vehiclePhotoUrl ?? '',
-//       };
-
-//       print('Sending registration request to: $url');
-//       print('Request Body: ${jsonEncode(body)}');
-
-//       final response = await http.post(
-//         url,
-//         headers: {
-//           'Authorization': 'Bearer $staticToken',
-//           'Content-Type': 'application/json',
-//         },
-//         body: jsonEncode(body),
-//       );
-
-//       print('Response Status: ${response.statusCode}');
-//       print('Response Body: ${response.body}');
-
-//       if (response.statusCode == 200 || response.statusCode == 201) {
-//         final jsonResponse = jsonDecode(response.body);
-//         final data = jsonResponse['data'] ?? jsonResponse;
-//         return UserpModel.fromJson(data);
-//       } else {
-//         throw Exception('Failed to register user: ${response.statusCode} - ${response.body}');
-//       }
-//     } catch (e) {
-//       print('Registration error: $e');
-//       throw Exception('Error during registration: $e');
-//     }
-//   }
 Future<UserpModel> registerUser({
   required String fullname,
   required String email,
@@ -220,24 +169,31 @@ Future<void> _saveTokenToStorage(String token) async {
 }
 
   Future<String> uploadImageToCloudinary(XFile imageFile) async {
-    final uri = Uri.parse('https://api.cloudinary.com/v1_1/djl0qjlmt/image/upload');
+    final token = await _storageService.getToken(); // Retrieve token
+    if (token == null) {
+      throw Exception('Token not found');
+    }
+    final uri = Uri.parse(
+      'https://api.cloudinary.com/v1_1/djl0qjlmt/image/upload',
+    );
     final request = http.MultipartRequest('POST', uri)
-      ..fields['upload_preset'] = 'flutter_unsigned'; // Ensure this preset exists in your Cloudinary account
+      ..fields['upload_preset'] =
+          'flutter_unsigned'; // Ensure this preset exists in your Cloudinary account
 
     try {
       if (kIsWeb) {
         final bytes = await imageFile.readAsBytes();
-        request.files.add(http.MultipartFile.fromBytes(
-          'file',
-          bytes,
-          filename: imageFile.name,
-        ));
+        request.files.add(
+          http.MultipartFile.fromBytes('file', bytes, filename: imageFile.name),
+        );
       } else {
-        request.files.add(await http.MultipartFile.fromPath(
-          'file',
-          imageFile.path,
-          filename: imageFile.name,
-        ));
+        request.files.add(
+          await http.MultipartFile.fromPath(
+            'file',
+            imageFile.path,
+            filename: imageFile.name,
+          ),
+        );
       }
 
       final response = await request.send();
@@ -261,37 +217,60 @@ Future<void> _saveTokenToStorage(String token) async {
     required String email,
     required String password,
   }) async {
-    final url = Uri.parse('$baseUrl/api/login');
+    final StorageService storageService = StorageService();
 
-    final body = {
-      'email': email,
-      'password': password,
-    };
+    try {
+      final url = Uri.parse('$baseUrl/api/login');
+      final body = jsonEncode({'email': email, 'password': password});
+      print(url);
+      print(body);
+      final response = await http.post(
+        url,
+        body: {'email': email, 'password': password},
+      );
 
-    final response = await http.post(
-      url,
-      headers: {
-        'Authorization': 'Bearer $staticToken',
-        'Content-Type': 'application/json',
-      },
-      body: jsonEncode(body),
-    );
+      print('Response Status: ${response.statusCode}');
 
-    print('Response Status: ${response.statusCode}');
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final jsonResponse = jsonDecode(response.body);
+        final data = jsonResponse['data'] ?? jsonResponse;
 
-    if (response.statusCode == 200 || response.statusCode == 201) {
-      final jsonResponse = jsonDecode(response.body);
-      final data = jsonResponse['data'] ?? jsonResponse;
-      return LoginModel.fromJson(data);
-    } else {
-      throw Exception('Failed to login: ${response.statusCode} - ${response.body}');
+        final loginModel = LoginModel.fromJson(data);
+
+        // Store the token using StorageService
+        await storageService.saveToken(loginModel.token);
+
+        return loginModel;
+      } else {
+        // More specific error handling
+        String errorMessage = 'Login failed';
+        try {
+          final errorResponse = jsonDecode(response.body);
+          errorMessage = errorResponse['message'] ?? errorMessage;
+        } catch (e) {
+          // If response body is not valid JSON, use default message
+        }
+
+        throw Exception('$errorMessage (Status: ${response.statusCode})');
+      }
+    } catch (e) {
+      if (e is Exception) {
+        rethrow;
+      }
+      // Handle other types of errors (network issues, etc.)
+      throw Exception('Network error: Unable to connect to server');
     }
   }
-    Future<List<UserModel>> fetchUsers() async {
+
+  Future<List<UserModel>> fetchUsers() async {
+    final token = await _storageService.getToken(); // Retrieve token
+    if (token == null) {
+      throw Exception('Token not found');
+    }
     final response = await http.get(
       Uri.parse('$baseUrl/api/users'),
       headers: {
-        'Authorization': 'Bearer $staticToken',
+        'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
       },
     );
@@ -311,12 +290,16 @@ Future<void> _saveTokenToStorage(String token) async {
   }
 
   Future<void> updateUserProfile(String id, UserpfModel user) async {
+    final token = await _storageService.getToken(); // Retrieve token
+    if (token == null) {
+      throw Exception('Token not found');
+    }
     final response = await http.put(
-      Uri.parse('http://127.0.0.1:8000/api/users/$id'),
+      Uri.parse('$baseUrl/api/users/$id'),
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
-        'Authorization': 'Bearer $staticToken',
+        'Authorization': 'Bearer $token',
       },
       body: json.encode(user.toJson()),
     );
@@ -334,11 +317,15 @@ Future<void> _saveTokenToStorage(String token) async {
   }
 
   // Fetch user profile from API
-    Future<UserpModel> fetchUserProfile(String id) async {
+  Future<UserpModel> fetchUserProfile(String id) async {
+    final token = await _storageService.getToken(); // Retrieve token
+    if (token == null) {
+      throw Exception('Token not found');
+    }
     final response = await http.get(
       Uri.parse('$baseUrl/api/users/$id'),
       headers: {
-        'Authorization': 'Bearer $staticToken',
+        'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
       },
     );
@@ -354,14 +341,17 @@ Future<void> _saveTokenToStorage(String token) async {
     }
   }
 
-
   Future<void> postActivity(String userId) async {
+    final token = await _storageService.getToken(); // Retrieve token
+    if (token == null) {
+      throw Exception('Token not found');
+    }
     final url = Uri.parse('$baseUrl/api/activities');
 
     final response = await http.post(
       url,
       headers: {
-        'Authorization': 'Bearer $staticToken',
+        'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
       },
       body: jsonEncode({'user_id': userId}),
@@ -382,6 +372,10 @@ Future<void> _saveTokenToStorage(String token) async {
 
   // Public method: gets profile, auto-checks for internet
   Future<UserpModel> getUserProfile(String id) async {
+    final token = await _storageService.getToken(); // Retrieve token
+    if (token == null) {
+      throw Exception('Token not found');
+    }
     final isOnline = await checkInternet();
     if (isOnline) {
       return await fetchUserProfile(id);
@@ -396,13 +390,11 @@ Future<void> _saveTokenToStorage(String token) async {
 
   // Internet check
   Future<bool> checkInternet() async {
+    final token = await _storageService.getToken(); // Retrieve token
+    if (token == null) {
+      throw Exception('Token not found');
+    }
     var result = await Connectivity().checkConnectivity();
     return result != ConnectivityResult.none;
   }
-
-
 }
-
-
-
-
