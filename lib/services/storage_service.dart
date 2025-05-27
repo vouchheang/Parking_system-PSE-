@@ -42,4 +42,9 @@ class StorageService {
     }
     return null;
   }
+  // Clear user profile from local storage
+Future<void> clearUserProfile() async {
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.remove(_profileKey);
+}
 }
