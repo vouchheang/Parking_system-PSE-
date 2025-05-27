@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:parking_system/screens/afterscan_screen.dart';
+import 'package:parking_system/screens/navigation.dart';
+import 'package:parking_system/screens/register._creen.dart';
+import 'package:parking_system/screens/splash_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -12,7 +15,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-       home:AfterscanScreen(activityId: '1b6e506e-47a0-4e0b-8b6f-171d57ce636b',)
+       home:ParkingRegistrationScreen()
     );
   }
 }

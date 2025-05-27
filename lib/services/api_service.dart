@@ -11,12 +11,13 @@ import 'package:parking_system/models/userlist_model.dart';
 import 'package:parking_system/models/userp_model.dart';
 import 'package:parking_system/models/userprofile_model.dart';
 import 'package:parking_system/services/storage_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 
 class ApiService {
   static const String baseUrl = 'https://pse-parking.final25.psewmad.org';
   static const String staticToken =
-      '45|3z3xiPS7K5jkc2Xo3056U8zjJNjO4zEGVx0Gm4Fd42e81a62';
+      '67|gW1H4TmlmjkvrNBNo1qWBIErMMVLwVFobChIloTz03c2907a';
   final StorageService _storageService = StorageService();
 
   Future<UserCount?> fetchUserCount() async {
@@ -66,71 +67,157 @@ class ApiService {
     }
   }
 
+// Future<UserpModel> registerUser({
+//     required String fullname,
+//     required String email,
+//     required String password,
+//     required String phonenumber,
+//     required String idcard,
+//     required String vehicletype,
+//     required String licenseplate,
+//     required XFile? profilephoto,
+//     required XFile? vehiclephoto,
+//   }) async {
+//     final url = Uri.parse('$baseUrl/api/register');
+
+//     try {
+//       // Upload images to Cloudinary and get URLs
+//       String? profilePhotoUrl;
+//       String? vehiclePhotoUrl;
+
+//       if (profilephoto != null) {
+//         profilePhotoUrl = await uploadImageToCloudinary(profilephoto);
+//       }
+//       if (vehiclephoto != null) {
+//         vehiclePhotoUrl = await uploadImageToCloudinary(vehiclephoto);
+//       }
+
+//       // Prepare the request body with Cloudinary URLs
+//       final body = {
+//         'fullname': fullname,
+//         'email': email,
+//         'password': password,
+//         'phonenumber': phonenumber,
+//         'idcard': idcard,
+//         'vehicletype': vehicletype.toLowerCase(),
+//         'licenseplate': licenseplate,
+//         'profilephoto': profilePhotoUrl ?? '',
+//         'vehiclephoto': vehiclePhotoUrl ?? '',
+//       };
+
+//       print('Sending registration request to: $url');
+//       print('Request Body: ${jsonEncode(body)}');
+
+//       final response = await http.post(
+//         url,
+//         headers: {
+//           'Authorization': 'Bearer $staticToken',
+//           'Content-Type': 'application/json',
+//         },
+//         body: jsonEncode(body),
+//       );
+
+//       print('Response Status: ${response.statusCode}');
+//       print('Response Body: ${response.body}');
+
+//       if (response.statusCode == 200 || response.statusCode == 201) {
+//         final jsonResponse = jsonDecode(response.body);
+//         final data = jsonResponse['data'] ?? jsonResponse;
+//         return UserpModel.fromJson(data);
+//       } else {
+//         throw Exception('Failed to register user: ${response.statusCode} - ${response.body}');
+//       }
+//     } catch (e) {
+//       print('Registration error: $e');
+//       throw Exception('Error during registration: $e');
+//     }
+//   }
 Future<UserpModel> registerUser({
-    required String fullname,
-    required String email,
-    required String password,
-    required String phonenumber,
-    required String idcard,
-    required String vehicletype,
-    required String licenseplate,
-    required XFile? profilephoto,
-    required XFile? vehiclephoto,
-  }) async {
-    final url = Uri.parse('$baseUrl/api/register');
+  required String fullname,
+  required String email,
+  required String password,
+  required String phonenumber,
+  required String idcard,
+  required String vehicletype,
+  required String licenseplate,
+  required XFile? profilephoto,
+  required XFile? vehiclephoto,
+}) async {
+  final url = Uri.parse('$baseUrl/api/register');
 
-    try {
-      // Upload images to Cloudinary and get URLs
-      String? profilePhotoUrl;
-      String? vehiclePhotoUrl;
+  try {
+    // Upload images to Cloudinary and get URLs
+    String? profilePhotoUrl;
+    String? vehiclePhotoUrl;
 
-      if (profilephoto != null) {
-        profilePhotoUrl = await uploadImageToCloudinary(profilephoto);
-      }
-      if (vehiclephoto != null) {
-        vehiclePhotoUrl = await uploadImageToCloudinary(vehiclephoto);
-      }
-
-      // Prepare the request body with Cloudinary URLs
-      final body = {
-        'fullname': fullname,
-        'email': email,
-        'password': password,
-        'phonenumber': phonenumber,
-        'idcard': idcard,
-        'vehicletype': vehicletype.toLowerCase(),
-        'licenseplate': licenseplate,
-        'profilephoto': profilePhotoUrl ?? '',
-        'vehiclephoto': vehiclePhotoUrl ?? '',
-      };
-
-      print('Sending registration request to: $url');
-      print('Request Body: ${jsonEncode(body)}');
-
-      final response = await http.post(
-        url,
-        headers: {
-          'Authorization': 'Bearer $staticToken',
-          'Content-Type': 'application/json',
-        },
-        body: jsonEncode(body),
-      );
-
-      print('Response Status: ${response.statusCode}');
-      print('Response Body: ${response.body}');
-
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        final jsonResponse = jsonDecode(response.body);
-        final data = jsonResponse['data'] ?? jsonResponse;
-        return UserpModel.fromJson(data);
-      } else {
-        throw Exception('Failed to register user: ${response.statusCode} - ${response.body}');
-      }
-    } catch (e) {
-      print('Registration error: $e');
-      throw Exception('Error during registration: $e');
+    if (profilephoto != null) {
+      profilePhotoUrl = await uploadImageToCloudinary(profilephoto);
     }
+    if (vehiclephoto != null) {
+      vehiclePhotoUrl = await uploadImageToCloudinary(vehiclephoto);
+    }
+
+    // Prepare the request body with Cloudinary URLs
+    final body = {
+      'fullname': fullname,
+      'email': email,
+      'password': password,
+      'phonenumber': phonenumber,
+      'idcard': idcard,
+      'vehicletype': vehicletype.toLowerCase(),
+      'licenseplate': licenseplate,
+      'profilephoto': profilePhotoUrl ?? '',
+      'vehiclephoto': vehiclePhotoUrl ?? '',
+    };
+
+    // Only log the URL for debugging, not sensitive data
+    print('Sending registration request to: $url');
+
+    final response = await http.post(
+      url,
+      headers: {
+        'Authorization': 'Bearer $staticToken',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode(body),
+    );
+
+    print('Response Status: ${response.statusCode}');
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      final jsonResponse = jsonDecode(response.body);
+      
+      // Handle token storage if present
+      if (jsonResponse['access_token'] != null) {
+        await _saveTokenToStorage(jsonResponse['access_token']);
+      }
+      
+      // Log success without exposing sensitive data
+      if (jsonResponse['success'] == true) {
+        print('Registration successful for user: $fullname');
+      }
+      
+      final data = jsonResponse['data'] ?? jsonResponse;
+      return UserpModel.fromJson(data);
+    } else {
+      throw Exception('Failed to register user: ${response.statusCode}');
+    }
+  } catch (e) {
+    print('Registration error: $e');
+    throw Exception('Error during registration: $e');
   }
+}
+
+// Private method to save token to SharedPreferences
+Future<void> _saveTokenToStorage(String token) async {
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('auth_token', token);
+    print('Registration: Token saved to SharedPreferences successfully');
+  } catch (e) {
+    print('Registration: Error saving token to SharedPreferences: $e');
+  }
+}
 
   Future<String> uploadImageToCloudinary(XFile imageFile) async {
     final uri = Uri.parse('https://api.cloudinary.com/v1_1/djl0qjlmt/image/upload');

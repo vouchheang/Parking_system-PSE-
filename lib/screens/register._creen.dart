@@ -3,8 +3,9 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter/foundation.dart' show Uint8List, kIsWeb;
-import 'package:parking_system/services/api_service.dart'; // Update to use ApiService
-// Import UserpModel
+import 'package:parking_system/screens/home_screen.dart';
+import 'package:parking_system/services/api_service.dart'; 
+
 
 class ParkingRegistrationScreen extends StatefulWidget {
   const ParkingRegistrationScreen({super.key});
@@ -69,7 +70,7 @@ class _ParkingRegistrationScreenState extends State<ParkingRegistrationScreen> {
 
     if (isFormValid && areImagesValid) {
       setState(() {
-        _isLoading = true; // Show loading indicator
+        _isLoading = true; 
       });
 
       try {
@@ -92,7 +93,7 @@ class _ParkingRegistrationScreenState extends State<ParkingRegistrationScreen> {
           const SnackBar(content: Text('Registration submitted successfully!')),
         );
 
-        // Clear form
+       
         _formKey.currentState!.reset();
         _fullnameController.clear();
         _emailController.clear();
@@ -105,6 +106,18 @@ class _ParkingRegistrationScreenState extends State<ParkingRegistrationScreen> {
           _profileImage = null;
           _vehicleImage = null;
         });
+        
+
+await Future.delayed(const Duration(seconds: 1));
+
+// Navigate to homepage
+if (mounted) {
+  Navigator.of(context).pushReplacement(
+    MaterialPageRoute(
+      builder: (_) => const HomeScreen(''), // Replace with your actual HomePage widget
+    ),
+  );
+}
       } catch (e) {
         print('Registration error: $e');
         String errorMessage = 'Registration failed. Please try again.';
@@ -118,7 +131,7 @@ class _ParkingRegistrationScreenState extends State<ParkingRegistrationScreen> {
         );
       } finally {
         setState(() {
-          _isLoading = false; // Hide loading indicator
+          _isLoading = false; 
         });
       }
     }
@@ -153,7 +166,7 @@ class _ParkingRegistrationScreenState extends State<ParkingRegistrationScreen> {
   }
 
   String? _validateIDCard(String? value) {
-    final regex = RegExp(r'^\d{4}-\d{1,2}$');
+    final regex = RegExp(r'^\d{4,5}-\d{1,2}$');
     if (value == null || value.isEmpty) return 'ID Card is required';
     if (!regex.hasMatch(value)) return 'Please enter a valid PSE staff ID card number';
     return null;
