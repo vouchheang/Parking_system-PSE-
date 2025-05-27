@@ -1,20 +1,21 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter/foundation.dart' show Uint8List, kIsWeb;
-import 'package:parking_system/services/api_service.dart'; // Update to use ApiService
-// Import UserpModel
+import 'package:parking_system/screens/home_screen.dart';
+import 'package:parking_system/services/api_service.dart';
 
 class ParkingRegistrationScreen extends StatefulWidget {
-  const ParkingRegistrationScreen({super.key});
+  const ParkingRegistrationScreen({super.key, required this.userId});
+  final String userId;
+  
 
   @override
   State<ParkingRegistrationScreen> createState() =>
       _ParkingRegistrationScreenState();
 }
 
-class _ParkingRegistrationScreenState extends State<ParkingRegistrationScreen> {
+class _ParkingRegistrationScreenState
+    extends State<ParkingRegistrationScreen> {
   final _formKey = GlobalKey<FormState>();
   final ApiService _apiService = ApiService();
 
@@ -28,12 +29,11 @@ class _ParkingRegistrationScreenState extends State<ParkingRegistrationScreen> {
   String _selectedVehicleType = 'Motor';
   XFile? _vehicleImage;
   XFile? _profileImage;
-  bool _isLoading = false; // Added for loading state
   final List<String> _vehicleTypes = ['Motor', 'Car'];
 
   Future<void> _pickVehicleImage() async {
-    final ImagePicker picker = ImagePicker();
-    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+    final picker = ImagePicker();
+    final image = await picker.pickImage(source: ImageSource.gallery);
     if (image != null) {
       setState(() {
         _vehicleImage = image;
@@ -42,8 +42,8 @@ class _ParkingRegistrationScreenState extends State<ParkingRegistrationScreen> {
   }
 
   Future<void> _pickProfileImage() async {
-    final ImagePicker picker = ImagePicker();
-    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+    final picker = ImagePicker();
+    final image = await picker.pickImage(source: ImageSource.gallery);
     if (image != null) {
       setState(() {
         _profileImage = image;
@@ -64,78 +64,80 @@ class _ParkingRegistrationScreenState extends State<ParkingRegistrationScreen> {
   }
 
   Future<void> _submitForm() async {
-    final isFormValid = _formKey.currentState!.validate();
-    final areImagesValid = _validateImages();
+  final isFormValid = _formKey.currentState!.validate();
+  final areImagesValid = _validateImages();
 
-    if (isFormValid && areImagesValid) {
+  if (isFormValid && areImagesValid) {
+    setState(() {}); // Optional loading UI trigger
+
+    try {
+      final user = await _apiService.registerUser(
+        fullname: _fullnameController.text.trim(),
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
+        phonenumber: _phoneNumberController.text.trim(),
+        idcard: _idCardController.text.trim(),
+        vehicletype: _selectedVehicleType.toLowerCase(),
+        licenseplate: _licensePlateController.text.trim(),
+        profilephoto: _profileImage,
+        vehiclephoto: _vehicleImage,
+      );
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Registration submitted successfully!')),
+      );
+
+      // Clear form
+      _formKey.currentState!.reset();
+      _fullnameController.clear();
+      _emailController.clear();
+      _passwordController.clear();
+      _phoneNumberController.clear();
+      _idCardController.clear();
+      _licensePlateController.clear();
       setState(() {
-        _isLoading = true; // Show loading indicator
+        _selectedVehicleType = 'Motor';
+        _profileImage = null;
+        _vehicleImage = null;
       });
 
-      try {
-        print('Submitting: fullname=${_fullnameController.text}, email=${_emailController.text}');
-        final user = await _apiService.registerUser(
-          fullname: _fullnameController.text.trim(),
-          email: _emailController.text.trim(),
-          password: _passwordController.text.trim(),
-          phonenumber: _phoneNumberController.text.trim(),
-          idcard: _idCardController.text.trim(),
-          vehicletype: _selectedVehicleType.toLowerCase(),
-          licenseplate: _licensePlateController.text.trim(),
-          profilephoto: _profileImage,
-          vehiclephoto: _vehicleImage,
-        );
+      Navigator.of(context).pushReplacement(
+  MaterialPageRoute(builder: (context) => HomeScreen(widget.userId)),
+);
 
-        print('Registration successful: ${user.toJson()}');
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Registration submitted successfully!')),
-        );
-
-        // Clear form
-        _formKey.currentState!.reset();
-        _fullnameController.clear();
-        _emailController.clear();
-        _passwordController.clear();
-        _phoneNumberController.clear();
-        _idCardController.clear();
-        _licensePlateController.clear();
-        setState(() {
-          _selectedVehicleType = 'Motor';
-          _profileImage = null;
-          _vehicleImage = null;
-        });
-      } catch (e) {
-        print('Registration error: $e');
-        String errorMessage = 'Registration failed. Please try again.';
-        if (e.toString().contains('email has already been taken')) {
-          errorMessage = 'The email is already registered. Please use a different email.';
-        } else if (e.toString().contains('Image upload failed')) {
-          errorMessage = 'Failed to upload images to Cloudinary. Please check your connection.';
-        }
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(errorMessage)),
-        );
-      } finally {
-        setState(() {
-          _isLoading = false; // Hide loading indicator
-        });
+    } catch (e) {
+      String errorMessage = 'Registration failed. Please try again.';
+      if (e.toString().contains('email has already been taken')) {
+        errorMessage =
+            'The email is already registered. Please use a different email.';
+      } else if (e.toString().contains('Image upload failed')) {
+        errorMessage =
+            'Failed to upload images to Cloudinary. Please check your connection.';
       }
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(errorMessage)));
+    } finally {
+      setState(() {});
     }
   }
+}
+
 
   String? _validateFullname(String? value) {
     if (value == null || value.trim().isEmpty) return 'Fullname is required';
     if (value.length < 4) return 'Fullname must be at least 4 characters';
-    final regex = RegExp(r'^[a-zA-Z\s]+$');
-    if (!regex.hasMatch(value)) return 'Fullname can only contain letters and spaces';
+    if (!RegExp(r'^[a-zA-Z\s]+$').hasMatch(value)) {
+      return 'Fullname can only contain letters and spaces';
+    }
     return null;
   }
 
   String? _validateEmail(String? value) {
     if (value == null || value.isEmpty) return 'Email is required';
-    final regex = RegExp(r'^[\w.-]+@institute\.pse\.ngo$');
-    if (!regex.hasMatch(value)) return 'Please enter a valid PSE email address';
+    if (!RegExp(r'^[\w.-]+@institute\.pse\.ngo$').hasMatch(value)) {
+      return 'Please enter a valid PSE email address';
+    }
     return null;
   }
 
@@ -146,23 +148,26 @@ class _ParkingRegistrationScreenState extends State<ParkingRegistrationScreen> {
   }
 
   String? _validateLicensePlate(String? value) {
-    final regex = RegExp(r'^\d{1,2}[A-Z]{1,3}-\d{3,4}$');
     if (value == null || value.isEmpty) return 'License plate is required';
-    if (!regex.hasMatch(value)) return 'Please enter a valid Cambodian license plate';
+    if (!RegExp(r'^\d{1,2}[A-Z]{1,3}-\d{3,4}$').hasMatch(value)) {
+      return 'Please enter a valid Cambodian license plate';
+    }
     return null;
   }
 
   String? _validateIDCard(String? value) {
-    final regex = RegExp(r'^\d{4}-\d{1,2}$');
     if (value == null || value.isEmpty) return 'ID Card is required';
-    if (!regex.hasMatch(value)) return 'Please enter a valid PSE staff ID card number';
+    if (!RegExp(r'^\d{4}-\d{1,2}$').hasMatch(value)) {
+      return 'Please enter a valid PSE staff ID card number';
+    }
     return null;
   }
 
   String? _validatePhoneNumber(String? value) {
-    final regex = RegExp(r'^(0[1-9]{1}[0-9]{7,8})$');
     if (value == null || value.isEmpty) return 'Phone number is required';
-    if (!regex.hasMatch(value)) return 'Enter a valid phone number';
+    if (!RegExp(r'^(0[1-9]{1}[0-9]{7,8})$').hasMatch(value)) {
+      return 'Enter a valid phone number';
+    }
     return null;
   }
 
@@ -240,41 +245,19 @@ class _ParkingRegistrationScreenState extends State<ParkingRegistrationScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildTextField(
-                      'Fullname',
-                      _fullnameController,
-                      _validateFullname,
-                    ),
-                    _buildTextField(
-                      'Email',
-                      _emailController,
-                      _validateEmail,
-                      TextInputType.emailAddress,
-                    ),
-                    _buildTextField(
-                      'Password',
-                      _passwordController,
-                      _validatePassword,
-                      TextInputType.text,
-                      true,
-                    ),
-                    _buildTextField(
-                      'Phone Number',
-                      _phoneNumberController,
-                      _validatePhoneNumber,
-                      TextInputType.phone,
-                    ),
+                    _buildTextField('Fullname', _fullnameController,
+                        _validateFullname),
+                    _buildTextField('Email', _emailController, _validateEmail,
+                        TextInputType.emailAddress),
+                    _buildTextField('Password', _passwordController,
+                        _validatePassword, TextInputType.text, true),
+                    _buildTextField('Phone Number', _phoneNumberController,
+                        _validatePhoneNumber, TextInputType.phone),
                     _buildDropdownField(),
+                    _buildTextField('License Plate Number',
+                        _licensePlateController, _validateLicensePlate),
                     _buildTextField(
-                      'License Plate Number',
-                      _licensePlateController,
-                      _validateLicensePlate,
-                    ),
-                    _buildTextField(
-                      'ID Card',
-                      _idCardController,
-                      _validateIDCard,
-                    ),
+                        'ID Card', _idCardController, _validateIDCard),
                     _buildImagePicker(),
                     const SizedBox(height: 32),
                     SizedBox(
@@ -297,11 +280,11 @@ class _ParkingRegistrationScreenState extends State<ParkingRegistrationScreen> {
                           ),
                         ),
                       ),
-                    ),
+                    )
                   ],
                 ),
               ),
-            ),
+            )
           ],
         ),
       ),
@@ -318,10 +301,8 @@ class _ParkingRegistrationScreenState extends State<ParkingRegistrationScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: const TextStyle(fontSize: 14, color: Color(0xFF8FA3AD)),
-        ),
+        Text(label,
+            style: const TextStyle(fontSize: 14, color: Color(0xFF8FA3AD))),
         const SizedBox(height: 8),
         TextFormField(
           controller: controller,
@@ -337,10 +318,8 @@ class _ParkingRegistrationScreenState extends State<ParkingRegistrationScreen> {
             ),
             hintText: 'Enter ${label.toLowerCase()}',
             hintStyle: const TextStyle(color: Colors.grey),
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 14,
-            ),
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           ),
         ),
         const SizedBox(height: 16),
@@ -352,10 +331,8 @@ class _ParkingRegistrationScreenState extends State<ParkingRegistrationScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Vehicle Type',
-          style: TextStyle(fontSize: 14, color: Color(0xFF8FA3AD)),
-        ),
+        const Text('Vehicle Type',
+            style: TextStyle(fontSize: 14, color: Color(0xFF8FA3AD))),
         const SizedBox(height: 8),
         DropdownButtonFormField<String>(
           value: _selectedVehicleType,
@@ -366,21 +343,19 @@ class _ParkingRegistrationScreenState extends State<ParkingRegistrationScreen> {
               borderRadius: BorderRadius.all(Radius.circular(8)),
               borderSide: BorderSide.none,
             ),
-            contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            contentPadding:
+                EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           ),
-          icon: const Icon(Icons.keyboard_arrow_down),
           items: _vehicleTypes
-              .map((String type) => DropdownMenuItem<String>(
+              .map((type) => DropdownMenuItem<String>(
                     value: type,
                     child: Text(type),
                   ))
               .toList(),
-          onChanged: (String? newValue) {
-            if (newValue != null) {
-              setState(() {
-                _selectedVehicleType = newValue;
-              });
-            }
+          onChanged: (value) {
+            setState(() {
+              _selectedVehicleType = value!;
+            });
           },
         ),
         const SizedBox(height: 16),
@@ -392,51 +367,45 @@ class _ParkingRegistrationScreenState extends State<ParkingRegistrationScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Upload Vehicle Photo',
-          style: TextStyle(fontSize: 14, color: Color(0xFF8FA3AD)),
-        ),
+        const Text('Upload Vehicle Photo',
+            style: TextStyle(fontSize: 14, color: Color(0xFF8FA3AD))),
         const SizedBox(height: 8),
         GestureDetector(
           onTap: _pickVehicleImage,
           child: Container(
+            height: 150,
             width: double.infinity,
-            height: 200,
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: const Color(0xFFD0D7DE)),
+              border: Border.all(color: Colors.grey.shade300),
             ),
-            child: _vehicleImage != null
-                ? ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: kIsWeb
-                        ? Image.network(
-                            _vehicleImage!.path,
-                            fit: BoxFit.cover,
-                          )
-                        : FutureBuilder<Uint8List>(
-                            future: _vehicleImage!.readAsBytes(),
-                            builder: (context, snapshot) {
-                              if (snapshot.hasData) {
-                                return Image.memory(
-                                  snapshot.data!,
-                                  fit: BoxFit.cover,
-                                );
-                              }
-                              return const CircularProgressIndicator();
-                            },
-                          ),
+            child: _vehicleImage == null
+                ? const Center(
+                    child: Text('Tap to upload image'),
                   )
-                : const Center(
-                    child: Icon(
-                      Icons.camera_alt,
-                      color: Color(0xFF8FA3AD),
-                      size: 48,
-                    ),
-                  ),
+                : kIsWeb
+                    ? Image.network(
+                        _vehicleImage!.path,
+                        fit: BoxFit.cover,
+                      )
+                    : FutureBuilder<Uint8List>(
+                        future: _vehicleImage!.readAsBytes(),
+                        builder: (context, snapshot) {
+                          if (snapshot.hasData) {
+                            return Image.memory(
+                              snapshot.data!,
+                              fit: BoxFit.cover,
+                            );
+                          }
+                          return const Center(
+                            child: CircularProgressIndicator(),
+                          );
+                        },
+                      ),
           ),
         ),
+        const SizedBox(height: 16),
       ],
     );
   }

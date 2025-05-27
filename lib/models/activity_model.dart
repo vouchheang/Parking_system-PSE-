@@ -2,11 +2,13 @@ class User {
   final String id;
   final String fullname;
   final String email;
+  final String idcard;
 
   User({
     required this.id,
     required this.fullname,
     required this.email,
+    required this.idcard,
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
@@ -14,6 +16,7 @@ class User {
       id: json['id'] ?? '',
       fullname: json['fullname'] ?? '',
       email: json['email'] ?? '',
+      idcard: json['idcard'] ?? '',
     );
   }
 }

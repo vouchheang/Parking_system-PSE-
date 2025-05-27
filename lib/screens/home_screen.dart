@@ -66,6 +66,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
+    print(widget.userId);
     _userProfileData = _userProfileController.getUserProfile(widget.userId);
   }
 
@@ -330,15 +331,15 @@ class _HomeScreenState extends State<HomeScreen> {
                                     ],
                                   ),
                                 ),
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(8),
-                                  child: Image.asset(
-                                    'assets/images/motorcycle.png',
-                                    width: double.infinity,
-                                    height: 200,
-                                    fit: BoxFit.cover,
-                                  ),
-                                ),
+                                // ClipRRect(
+                                //   borderRadius: BorderRadius.circular(8),
+                                //   child: Image.asset(
+                                //     'assets/images/motorcycle.png',
+                                //     width: double.infinity,
+                                //     height: 200,
+                                //     fit: BoxFit.cover,
+                                //   ),
+                                // ),
                                 const SizedBox(height: 10),
                               ],
                             ),

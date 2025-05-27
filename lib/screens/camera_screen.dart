@@ -1,6 +1,6 @@
-import 'package:parking_system/controllers/activity_controller.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:flutter/material.dart';
+import 'dart:developer' as developer;
 
 class QRScannerScreen extends StatefulWidget {
   const QRScannerScreen({super.key});
@@ -11,11 +11,8 @@ class QRScannerScreen extends StatefulWidget {
 
 class _QRScannerScreenState extends State<QRScannerScreen> {
   final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
-  final ActivityController _activityController = ActivityController();
-
   QRViewController? controller;
   String? scannedData;
-  bool isPosting = false;
 
   @override
   void dispose() {
@@ -25,35 +22,53 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
 
   void _onQRViewCreated(QRViewController controller) {
     this.controller = controller;
-    controller.scannedDataStream.listen((scanData) async {
-      if (scanData.code != null && !isPosting) {
-        controller.pauseCamera();
+    controller.scannedDataStream.listen((scanData) {
+      if (scanData.code != null) {
+        // Log the scanned data to console
+        developer.log('QR Code Scanned: ${scanData.code}');
+        ('QR Code Scanned: ${scanData.code}');
+
         setState(() {
           scannedData = scanData.code;
-          isPosting = true;
         });
 
-        try {
-          // Post scanned data to backend
-          await _activityController.postActivity(scannedData!);
-
-          if (!mounted) return;
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Activity posted successfully!')),
-          );
-        } catch (e) {
-          if (!mounted) return;
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Failed to post activity: $e')),
-          );
-        } finally {
-          setState(() {
-            isPosting = false;
-          });
-          controller.resumeCamera();
-        }
+        // Optional: Show the scanned data in a dialog
+        _showScannedDataDialog(scanData.code!);
       }
     });
+  }
+
+  void _showScannedDataDialog(String data) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('QR Code Scanned'),
+          content: Text('Data: $data'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                // Resume scanning after dialog is closed
+                controller?.resumeCamera();
+              },
+              child: const Text('OK'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                // Clear scanned data and resume scanning
+                setState(() {
+                  scannedData = null;
+                });
+                controller?.resumeCamera();
+              },
+              child: const Text('Scan Again'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -61,21 +76,63 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('QR Scanner'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.flash_on),
+            onPressed: () {
+              controller?.toggleFlash();
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.flip_camera_ios),
+            onPressed: () {
+              controller?.flipCamera();
+            },
+          ),
+        ],
       ),
       body: Column(
         children: <Widget>[
           Expanded(
             flex: 4,
-            child: QRView(key: qrKey, onQRViewCreated: _onQRViewCreated),
+            child: QRView(
+              key: qrKey,
+              onQRViewCreated: _onQRViewCreated,
+              overlay: QrScannerOverlayShape(
+                borderColor: Colors.red,
+                borderRadius: 10,
+                borderLength: 30,
+                borderWidth: 10,
+                cutOutSize: 300,
+              ),
+            ),
           ),
           Expanded(
             flex: 1,
             child: Center(
-              child: Text(
-                scannedData != null
-                    ? 'Scanned: $scannedData'
-                    : 'Scan a QR code',
-                style: Theme.of(context).textTheme.titleMedium,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    scannedData != null
+                        ? 'Scanned: $scannedData'
+                        : 'Point camera at QR code',
+                    style: Theme.of(context).textTheme.titleMedium,
+                    textAlign: TextAlign.center,
+                  ),
+                  if (scannedData != null) ...[
+                    const SizedBox(height: 10),
+                    ElevatedButton(
+                      onPressed: () {
+                        setState(() {
+                          scannedData = null;
+                        });
+                        controller?.resumeCamera();
+                      },
+                      child: const Text('Scan Again'),
+                    ),
+                  ],
+                ],
               ),
             ),
           ),
