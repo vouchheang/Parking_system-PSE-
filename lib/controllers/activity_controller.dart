@@ -6,16 +6,22 @@ import 'package:parking_system/services/storage_service.dart';
 
 class ActivityController {
   final ApiService _apiService = ApiService();
-  final String baseUrl = "https://pse-parking.final25.psewmad.org";
-  final staticToken = '71|uo1wPGg4qPwMH0BGuxDAyRN2fi657zpjMxXjoeyY1bb77bd7';
+  final String baseUrl = "https://pse-parking-be.final25.psewmad.org";
+  final StorageService _storageService = StorageService();
+
+    
 
   // Updated postActivity method to return ActivityResponse
   Future<ActivityResponse> postActivity(String userId) async {
+    final token = await _storageService.getToken();
+    if (token == null) {
+      throw Exception('Token not found');
+    }
     final url = Uri.parse('$baseUrl/api/activities');
     final response = await http.post(
       url,
       headers: {
-        'Authorization': 'Bearer $staticToken',
+        'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
       },
       body: jsonEncode({'user_id': userId}),
@@ -36,38 +42,18 @@ class ActivityController {
   Future<List<Activity>> fetchActivities() {
     return _apiService.fetchActivities();
   }
-   final String baseUrl = "https://pse-parking.final25.psewmad.org/api/activity/";
-  final StorageService _storageService = StorageService();
 
- Future<Activity?> fetchActivity(String id) async {
-   final token = await _storageService.getToken(); 
+  Future<Activity?> fetchActivity(String id) async {
+    final token = await _storageService.getToken();
     if (token == null) {
       throw Exception('Token not found');
     }
-  final String apiUrl = baseUrl + id;  // append the dynamic id here
-
-  try {
-    final response = await http.get(
-      Uri.parse(apiUrl),
-      headers: {
-        'Authorization': 'Bearer $token',  // add your token here
-        'Accept': 'application/json',      // optional but recommended
-      },
-    );
-
-    if (response.statusCode == 200) {
-      final Map<String, dynamic> jsonData = json.decode(response.body);
-      return Activity.fromJson(jsonData);
-    } else {
-      print('Failed to load activity, status code: ${response.statusCode}');
-
-  Future<Activity?> fetchActivity(String id) async {
     final String apiUrl = "$baseUrl/api/activity/$id"; // Fixed URL construction
     try {
       final response = await http.get(
         Uri.parse(apiUrl),
         headers: {
-          'Authorization': 'Bearer $staticToken',
+          'Authorization': 'Bearer $token',
           'Accept': 'application/json',
         },
       );

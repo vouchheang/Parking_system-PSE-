@@ -1,14 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:parking_system/controllers/login_controller.dart';
+import 'package:parking_system/models/userprofile_model.dart';
 import 'package:parking_system/screens/navigation.dart';
 import 'package:parking_system/services/api_service.dart';
+import 'package:parking_system/services/storage_service.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginScreen extends StatefulWidget {
   final String role;
+  final String userId;
 
-  const LoginScreen({super.key, required this.role});
-  
+  const LoginScreen({super.key, required this.role, required this.userId});
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -47,7 +51,6 @@ class _LoginScreenState extends State<LoginScreen> {
                   const SizedBox(height: 24),
                   _buildLoginButton(),
                   const SizedBox(height: 16),
-                  _buildForgotPassword(),
                   const SizedBox(height: 20),
                 ],
               ),
@@ -169,39 +172,44 @@ class _LoginScreenState extends State<LoginScreen> {
         return SizedBox(
           width: double.infinity,
           child: ElevatedButton(
-            onPressed: controller.isLoading
-    ? null
-    : () async {
-        print(_emailController.text);
-        print(_passwordController.text);
-        final success = await controller.login(
-          _emailController.text,
-          _passwordController.text,
-        );
-        if (success) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Login successful!'),
-              backgroundColor: Colors.green,
-            ),
-          );
+            // Inside your _buildLoginButton() -> onPressed async function:
+            onPressed:
+                controller.isLoading
+                    ? null
+                    : () async {
+                      final success = await controller.login(
+                        _emailController.text,
+                        _passwordController.text,
+                      );
 
-          // Navigate to the next page
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => NavigationScreen('', role: '',)),
-          );
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                controller.errorMessage ?? 'Login failed',
-              ),
-              backgroundColor: Colors.red,
-            ),
-          );
-        }
-      },
+                      if (success) {
+                        final loginData = controller.loginModel;
+
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Login successful!'),
+                            backgroundColor: Colors.green,
+                          ),
+                        );
+
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                            builder:
+                                (context) => NavigationScreen(),
+                          ),
+                        );
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              controller.errorMessage ?? 'Login failed',
+                            ),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                      }
+                    },
 
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.orange,
@@ -224,26 +232,6 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
         );
       },
-    );
-  }
-
-  Widget _buildForgotPassword() {
-    return TextButton(
-      onPressed: () {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Forgot Password feature not implemented yet.'),
-          ),
-        );
-      },
-      child: const Text(
-        'Forgot Password?',
-        style: TextStyle(
-          color: Color(0xFF116692),
-          fontSize: 14,
-          fontWeight: FontWeight.w500,
-        ),
-      ),
     );
   }
 }

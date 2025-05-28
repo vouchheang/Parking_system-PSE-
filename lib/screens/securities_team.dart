@@ -61,7 +61,7 @@ class _SecuritiesTeamState extends State<SecuritiesTeam> {
   static const Color textDark = Color(0xFF333333);
   static const Color textLight = Color(0xFF666666);
 
-  static const String baseUrl = 'https://pse-parking.final25.psewmad.org';
+  static const String baseUrl = 'https://pse-parking-be.final25.psewmad.org';
   final StorageService _storageService = StorageService();
 
   List<SecurityModel> securities = [];
