@@ -81,4 +81,8 @@ Future<void> clearRole() async {
   final prefs = await SharedPreferences.getInstance();
   await prefs.remove(_roleKey);
 }
+Future<void> clearId() async {
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.remove(_idKey);
+}
 }

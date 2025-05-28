@@ -110,10 +110,7 @@ class _NavigationScreenState extends State<NavigationScreen> {
               const SizedBox(width: 12),
               const Text(
                 'Confirm Logout',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
             ],
           ),
@@ -125,32 +122,32 @@ class _NavigationScreenState extends State<NavigationScreen> {
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
               style: TextButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 12,
+                ),
               ),
               child: const Text(
                 'Cancel',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                ),
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
               ),
             ),
             ElevatedButton(
               onPressed: () => Navigator.of(context).pop(true),
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color.fromARGB(255, 255, 255, 255),
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                backgroundColor: const Color.fromARGB(255, 214, 61, 61),
+                foregroundColor: const Color.fromARGB(255, 255, 255, 255),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 12,
+                ),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
               ),
               child: const Text(
                 'Logout',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
             ),
           ],
@@ -195,6 +192,7 @@ class _NavigationScreenState extends State<NavigationScreen> {
       await _storageService.clearToken();
       await _storageService.clearUserProfile();
       await _storageService.clearRole();
+      await _storageService.clearId();
 
       // Small delay for better UX
       await Future.delayed(const Duration(milliseconds: 500));
@@ -204,9 +202,7 @@ class _NavigationScreenState extends State<NavigationScreen> {
       // Navigate to auth screen
       Navigator.pushAndRemoveUntil(
         context,
-        MaterialPageRoute(
-          builder: (context) => const AuthSelectionScreen(),
-        ),
+        MaterialPageRoute(builder: (context) => const AuthSelectionScreen()),
         (Route<dynamic> route) => false,
       );
 
@@ -227,7 +223,7 @@ class _NavigationScreenState extends State<NavigationScreen> {
     } catch (e) {
       // Handle error
       if (!mounted) return;
-      
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Row(
@@ -260,34 +256,34 @@ class _NavigationScreenState extends State<NavigationScreen> {
           // Enhanced logout button
           Container(
             margin: const EdgeInsets.only(right: 8),
-            child: _isLoggingOut
-                ? Container(
-                    padding: const EdgeInsets.all(12),
-                    child: SizedBox(
-                      width: 24,
-                      height: 24,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+            child:
+                _isLoggingOut
+                    ? Container(
+                      padding: const EdgeInsets.all(12),
+                      child: SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            Colors.white,
+                          ),
+                        ),
                       ),
+                    )
+                    : IconButton(
+                      onPressed: _showLogoutDialog,
+                      icon: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Icon(Icons.logout_rounded, size: 20),
+                      ),
+                      tooltip: 'Logout',
+                      splashRadius: 24,
                     ),
-                  )
-                : IconButton(
-                    onPressed: _showLogoutDialog,
-                    icon: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: const Icon(
-                        Icons.logout_rounded,
-                        size: 20,
-                      ),
-                    ),
-                    tooltip: 'Logout',
-                    splashRadius: 24,
-                  ),
           ),
         ],
       ),
@@ -299,23 +295,24 @@ class _NavigationScreenState extends State<NavigationScreen> {
           );
         }),
       ),
-      bottomNavigationBar: role == "user"
-          ? HomeScreen()
-          : BottomNavigationBar(
-              backgroundColor: const Color(0xFF116692),
-              unselectedItemColor: Colors.white,
-              selectedItemColor: Colors.orange,
-              selectedIconTheme: const IconThemeData(size: 32.0),
-              unselectedIconTheme: const IconThemeData(size: 28.0),
-              selectedLabelStyle: const TextStyle(
-                fontSize: 14.0,
-                fontWeight: FontWeight.bold,
+      bottomNavigationBar:
+          role == "user"
+              ? HomeScreen()
+              : BottomNavigationBar(
+                backgroundColor: const Color(0xFF116692),
+                unselectedItemColor: Colors.white,
+                selectedItemColor: Colors.orange,
+                selectedIconTheme: const IconThemeData(size: 32.0),
+                unselectedIconTheme: const IconThemeData(size: 28.0),
+                selectedLabelStyle: const TextStyle(
+                  fontSize: 14.0,
+                  fontWeight: FontWeight.bold,
+                ),
+                unselectedLabelStyle: const TextStyle(fontSize: 14.0),
+                items: _navItems,
+                currentIndex: _selectedIndex,
+                onTap: _onItemTapped,
               ),
-              unselectedLabelStyle: const TextStyle(fontSize: 14.0),
-              items: _navItems,
-              currentIndex: _selectedIndex,
-              onTap: _onItemTapped,
-            ),
     );
   }
 }

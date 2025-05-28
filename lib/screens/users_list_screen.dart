@@ -1,4 +1,3 @@
-// TODO Implement this library.// TODO Implement this library.import 'package:flutter/material.dart';
 import 'package:flutter/material.dart';
 import 'package:parking_system/controllers/user_controller.dart';
 import 'package:parking_system/models/userlist_model.dart';
@@ -44,7 +43,9 @@ class _UserListScreenState extends State<UserListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFF5F5F5),
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         title: const Text(
           'Users List',
           style: TextStyle(
@@ -53,40 +54,102 @@ class _UserListScreenState extends State<UserListScreen> {
             color: Color(0xFF116692),
           ),
         ),
-        elevation: 0,
+        backgroundColor: Colors.white,
+        elevation: 1,
+        shadowColor: Colors.black.withOpacity(0.1),
       ),
-      body: SafeArea(
-        child: Column(
-          children: [
-            _buildSearchBar(),
-            _buildTableHeader(),
-            Expanded(
-              child: FutureBuilder<List<UserModel>>(
-                future: _userData,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
-                  } else if (snapshot.hasError) {
-                    return Center(child: Text('Error: ${snapshot.error}'));
-                  } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return const Center(child: Text('No users found'));
-                  }
+      body: Column(
+        children: [
+          _buildSearchBar(),
+          _buildTableHeader(),
+          Expanded(
+            child: FutureBuilder<List<UserModel>>(
+              future: _userData,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(
+                    child: CircularProgressIndicator(
+                      color: Color(0xFF116692),
+                    ),
+                  );
+                } else if (snapshot.hasError) {
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.error_outline,
+                          size: 48,
+                          color: Colors.grey[400],
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'Error: ${snapshot.error}',
+                          style: TextStyle(
+                            color: Colors.grey[600],
+                            fontSize: 16,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.people_outline,
+                          size: 64,
+                          color: Colors.grey[400],
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'No users found',
+                          style: TextStyle(
+                            color: Colors.grey[600],
+                            fontSize: 18,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }
 
-                  final users = _filterUsers(snapshot.data!);
+                final users = _filterUsers(snapshot.data!);
 
-                  return users.isEmpty
-                      ? const Center(child: Text('No matching users found'))
-                      : ListView.builder(
+                return users.isEmpty
+                    ? Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.search_off,
+                              size: 64,
+                              color: Colors.grey[400],
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              'No matching users found',
+                              style: TextStyle(
+                                color: Colors.grey[600],
+                                fontSize: 18,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                    : ListView.builder(
                         padding: const EdgeInsets.all(16),
                         itemCount: users.length,
-                        itemBuilder:
-                            (context, index) => _buildUserRow(users[index]),
+                        itemBuilder: (context, index) => _buildUserRow(users[index]),
                       );
-                },
-              ),
+              },
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -100,30 +163,29 @@ class _UserListScreenState extends State<UserListScreen> {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 5),
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
       child: TextField(
         controller: _searchController,
         decoration: InputDecoration(
-          hintText: 'Search by name, ID or email...',
+          hintText: 'Search by name, ID or license plate...',
           hintStyle: TextStyle(color: Colors.grey.shade400),
           prefixIcon: Icon(Icons.search, color: Colors.grey.shade400),
-          suffixIcon:
-              _searchQuery.isNotEmpty
-                  ? IconButton(
-                    icon: const Icon(Icons.clear, color: Colors.grey),
-                    onPressed: () {
-                      _searchController.clear();
-                      setState(() {
-                        _searchQuery = '';
-                      });
-                    },
-                  )
-                  : null,
+          suffixIcon: _searchQuery.isNotEmpty
+              ? IconButton(
+                  icon: Icon(Icons.clear, color: Colors.grey.shade400),
+                  onPressed: () {
+                    _searchController.clear();
+                    setState(() {
+                      _searchQuery = '';
+                    });
+                  },
+                )
+              : null,
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(vertical: 16),
         ),
@@ -145,25 +207,19 @@ class _UserListScreenState extends State<UserListScreen> {
     );
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       margin: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.shade200),
       ),
-      child: Row(
+      child: const Row(
         children: [
           Expanded(flex: 3, child: Text('Name', style: headerStyle)),
-          Expanded(flex: 2, child: Text('ID', style: headerStyle)),
-          Expanded(flex: 2, child: Text('license', style: headerStyle)),
-          const SizedBox(width: 80),
+          Expanded(flex: 2, child: Text('ID Card', style: headerStyle)),
+          Expanded(flex: 2, child: Text('License Plate', style: headerStyle)),
+          SizedBox(width: 80, child: Text('Action', style: headerStyle)),
         ],
       ),
     );
@@ -171,66 +227,89 @@ class _UserListScreenState extends State<UserListScreen> {
 
   Widget _buildUserRow(UserModel user) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
-        child: Row(
-          children: [
-            Expanded(
-              flex: 3,
-              child: Text(
-                user.fullname,
-                style: const TextStyle(
-                  fontWeight: FontWeight.w500,
-                  fontSize: 16,
-                  color: Color(0xFF212121),
-                ),
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.shade100),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 4,
+            offset: const Offset(0, 1),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            flex: 3,
+            child: Text(
+              user.fullname,
+              style: const TextStyle(
+                fontWeight: FontWeight.w500,
+                fontSize: 16,
+                color: Color(0xFF212121),
               ),
             ),
-            Expanded(
-              flex: 2,
-              child: Text(
-                user.idcard,
-                style: const TextStyle(fontSize: 16, color: Color(0xFF616161)),
+          ),
+          Expanded(
+            flex: 2,
+            child: Text(
+              user.idcard,
+              style: const TextStyle(
+                fontSize: 15,
+                color: Color(0xFF616161),
               ),
             ),
-            Expanded(
-              flex: 2,
-              child: Text(
-                user.profile?.licenseplate ?? '',
-                style: const TextStyle(fontSize: 16, color: Color(0xFF616161)),
+          ),
+          Expanded(
+            flex: 2,
+            child: Text(
+              user.profile?.licenseplate ?? 'N/A',
+              style: TextStyle(
+                fontSize: 15,
+                color: user.profile?.licenseplate != null 
+                    ? const Color(0xFF616161)
+                    : Colors.grey.shade400,
+                fontStyle: user.profile?.licenseplate == null 
+                    ? FontStyle.italic 
+                    : FontStyle.normal,
               ),
             ),
-            SizedBox(
-              width: 80,
-              child: ElevatedButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder:
-                          (context) => ProfileScreen(user.id),
-                    ),
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFFF9800),
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 15),
-                  minimumSize: const Size(80, 36),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+          ),
+          SizedBox(
+            width: 80,
+            child: ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ProfileScreen(user.id),
                   ),
-                  elevation: 0,
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFFF9800),
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Text(
-                  'View',
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                elevation: 2,
+                shadowColor: const Color(0xFFFF9800).withOpacity(0.3),
+              ),
+              child: const Text(
+                'View',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

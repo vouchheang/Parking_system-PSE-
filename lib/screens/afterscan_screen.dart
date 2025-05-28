@@ -125,11 +125,9 @@ class _AfterscanScreenState extends State<AfterscanScreen> {
   String _formatDateTime(String dateTimeString) {
     try {
       final DateTime dateTime = DateTime.parse(dateTimeString);
-      final String formattedTime =
-          '${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
       final String formattedDate =
           '${_getMonthName(dateTime.month)} ${dateTime.day}, ${dateTime.year}';
-      return '$formattedTime, $formattedDate';
+      return formattedDate;
     } catch (e) {
       return dateTimeString; // Return original string if parsing fails
     }

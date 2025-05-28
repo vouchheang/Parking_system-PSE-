@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:parking_system/controllers/userprofile_controller.dart';
 import 'package:parking_system/models/userprofile_model.dart';
+import 'package:parking_system/services/storage_service.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen(this.userId, {super.key});
@@ -13,6 +14,8 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   final UserProfileController _userProfileController = UserProfileController();
   late Future<UserpModel> _userProfileData;
+  final StorageService _storageService = StorageService();
+  String userId = "";
   bool _isEditing = false;
   bool _isUpdating = false;
 
@@ -25,8 +28,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   void initState() {
+    getInitData();
     super.initState();
-    _userProfileData = _userProfileController.getUserProfile(widget.userId);
+  }
+
+  Future<void> getInitData() async {
+    final currentId = await _storageService.getID() ?? "";
+    setState(() {
+      userId = currentId;
+    });
+    _userProfileData = _userProfileController.getUserProfile(currentId);
   }
 
   @override
@@ -65,15 +76,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
     });
 
     try {
-      Map<String, dynamic> updatedProfileData = {
-        'fullname': _fullnameController.text.trim(),
-        'idcard': _idcardController.text.trim(),
-        'vehicletype': _vehicletypeController.text.trim(),
-        'licenseplate': _licenseplateController.text.trim(),
-        'phonenumber': _phonenumberController.text.trim(),
-        'profilephoto': '', // You might want to handle photo updates separately
-        'vehiclephoto': '', // You might want to handle photo updates separately
-      };
+      // Map<String, dynamic> updatedProfileData = {
+      //   'fullname': _fullnameController.text.trim(),
+      //   'idcard': _idcardController.text.trim(),
+      //   'vehicletype': _vehicletypeController.text.trim(),
+      //   'licenseplate': _licenseplateController.text.trim(),
+      //   'phonenumber': _phonenumberController.text.trim(),
+      //   'profilephoto': '', // You might want to handle photo updates separately
+      //   'vehiclephoto': '', // You might want to handle photo updates separately
+      // };
 
       // Update the user profile with the new data
       // await _userProfileController.updateUserProfile(
@@ -82,10 +93,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
       // );
 
       // Refresh the profile data
-      setState(() {
-        _userProfileData = _userProfileController.getUserProfile(widget.userId);
-        _isEditing = false;
-      });
+      // setState(() {
+      //   _userProfileData = _userProfileController.getUserProfile(curren);
+      //   _isEditing = false;
+      // });
 
       // Show success message
       if (mounted) {
@@ -161,9 +172,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             backgroundImage:
                                 // ignore: unnecessary_null_comparison
                                 profile.profilephoto != null
-                                    ? NetworkImage(
-                                          profile.profilephoto,
-                                        )
+                                    ? NetworkImage(profile.profilephoto)
                                         as ImageProvider
                                     : const AssetImage(
                                       'assets/images/profile.png',
@@ -172,7 +181,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           const SizedBox(height: 12),
 
                           // Edit/Save/Cancel buttons
-                         
                           const SizedBox(height: 16),
                           Text(
                             _isEditing

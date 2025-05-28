@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:parking_system/models/activity_model.dart';
 import 'package:parking_system/models/checkin_out_model.dart';
+import 'package:parking_system/models/registerModel.dart';
 import 'package:parking_system/models/usercount_model.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:parking_system/models/loginModel.dart';
@@ -80,7 +81,7 @@ class ApiService {
     }
   }
 
-  Future<UserpModel> registerUser({
+  Future<void> registerUser({
     required String fullname,
     required String email,
     required String password,
@@ -145,11 +146,13 @@ class ApiService {
           print('Registration successful for user: $fullname');
         }
 
-        final data = jsonResponse['data'] ?? jsonResponse;
-        final userData = UserpModel.fromJson(data);
-        await _storageService.saveProfileLocally(userData.toJson());
+        // final data = jsonResponse['data'] ?? jsonResponse;
+        final userData = RegisterResponseModel.fromJson(jsonResponse);
+        await _storageService.saveToken(userData.accessToken);
+        await _storageService.saveRole(userData.data.user.role);
+        await _storageService.saveID(userData.data.user.id);
 
-        return userData;
+         
       } else {
         throw Exception('Failed to register user: ${response.statusCode}');
       }

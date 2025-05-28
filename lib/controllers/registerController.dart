@@ -43,7 +43,7 @@ class RegistrationController extends ChangeNotifier {
         vehiclephoto: vehiclephoto,
       );
 
-      registrationModel = registrationData;
+      // registrationModel = registrationData;
       
       // Get the stored token from SharedPreferences (saved by the service)
       final prefs = await SharedPreferences.getInstance();

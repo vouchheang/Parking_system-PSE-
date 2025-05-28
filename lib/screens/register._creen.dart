@@ -94,7 +94,7 @@ class _ParkingRegistrationScreenState extends State<ParkingRegistrationScreen> {
           vehiclephoto: _vehicleImage,
         );
 
-        print('Registration successful: ${user.toJson()}');
+        // print('Registration successful: ${user.toJson()}');
 
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Registration submitted successfully!')),

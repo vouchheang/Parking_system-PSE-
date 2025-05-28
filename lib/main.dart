@@ -4,6 +4,7 @@ import 'package:parking_system/screens/camera_screen.dart';
 import 'package:parking_system/screens/home_screen.dart';
 import 'package:parking_system/screens/intro_screen.dart';
 import 'package:parking_system/screens/navigation.dart';
+import 'package:parking_system/screens/profile_screen.dart';
 import 'package:parking_system/screens/register._creen.dart';
 import 'package:parking_system/screens/select_screen.dart';
 import 'package:parking_system/screens/splash_screen.dart';
@@ -20,7 +21,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-       home:SplashScreen()
+       home:ProfileScreen('')
     );
   }
 }

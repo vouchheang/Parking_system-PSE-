@@ -1,9 +1,35 @@
 import 'package:flutter/material.dart';
 import 'package:parking_system/screens/login_screen.dart';
+import 'package:parking_system/screens/navigation.dart';
 import 'package:parking_system/screens/register._creen.dart';
+import 'package:parking_system/services/storage_service.dart';
+import 'package:parking_system/screens/home_screen.dart'; // <-- Make sure this import exists
 
-class AuthSelectionScreen extends StatelessWidget {
+class AuthSelectionScreen extends StatefulWidget {
   const AuthSelectionScreen({super.key});
+
+  @override
+  State<AuthSelectionScreen> createState() => _AuthSelectionScreenState();
+}
+
+class _AuthSelectionScreenState extends State<AuthSelectionScreen> {
+  final StorageService _storageService = StorageService();
+
+  @override
+  void initState() {
+    super.initState();
+    _checkToken();
+  }
+
+  void _checkToken() async {
+    final token = await _storageService.getToken();
+    if (token != null && token.isNotEmpty) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const NavigationScreen()),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -19,7 +45,7 @@ class AuthSelectionScreen extends StatelessWidget {
             child: Column(
               children: [
                 Image.asset(
-                  'assets/images/logo.png', // Replace with your actual logo
+                  'assets/images/logo.png',
                   width: 100,
                   height: 100,
                   errorBuilder: (context, error, stackTrace) => Container(
@@ -48,15 +74,12 @@ class AuthSelectionScreen extends StatelessWidget {
                 const SizedBox(height: 8),
                 const Text(
                   'Manage your parking easily',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.white70,
-                  ),
+                  style: TextStyle(fontSize: 16, color: Colors.white70),
                 ),
               ],
             ),
           ),
-          
+
           // Main content
           Expanded(
             child: Padding(
@@ -73,7 +96,7 @@ class AuthSelectionScreen extends StatelessWidget {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => const LoginScreen(role: '', userId: '',),
+                            builder: (context) => const LoginScreen(role: '', userId: ''),
                           ),
                         );
                       },
@@ -93,9 +116,9 @@ class AuthSelectionScreen extends StatelessWidget {
                       ),
                     ),
                   ),
-                  
+
                   const SizedBox(height: 20),
-                  
+
                   // Register button
                   SizedBox(
                     width: double.infinity,
@@ -129,26 +152,20 @@ class AuthSelectionScreen extends StatelessWidget {
               ),
             ),
           ),
-          
+
           // Footer
           Padding(
             padding: const EdgeInsets.only(bottom: 40),
             child: Column(
-              children: [
-                const Text(
+              children: const [
+                Text(
                   '© 2024 PSE Parking System',
-                  style: TextStyle(
-                    color: Color(0xFF8FA3AD),
-                    fontSize: 12,
-                  ),
+                  style: TextStyle(color: Color(0xFF8FA3AD), fontSize: 12),
                 ),
-                const SizedBox(height: 8),
-                const Text(
+                SizedBox(height: 8),
+                Text(
                   'Version 1.0.0',
-                  style: TextStyle(
-                    color: Color(0xFF8FA3AD),
-                    fontSize: 12,
-                  ),
+                  style: TextStyle(color: Color(0xFF8FA3AD), fontSize: 12),
                 ),
               ],
             ),
