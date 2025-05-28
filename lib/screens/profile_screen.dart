@@ -76,10 +76,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
       };
 
       // Update the user profile with the new data
-      await _userProfileController.updateUserProfile(
-        widget.userId,
-        updatedProfileData,
-      );
+      // await _userProfileController.updateUserProfile(
+      //   widget.userId,
+      //   updatedProfileData,
+      // );
 
       // Refresh the profile data
       setState(() {
@@ -172,109 +172,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           const SizedBox(height: 12),
 
                           // Edit/Save/Cancel buttons
-                          if (!_isEditing)
-                            ElevatedButton.icon(
-                              onPressed: _onEditPressed,
-                              icon: const Icon(
-                                Icons.edit,
-                                size: 18,
-                                color: Color(0xFF116692),
-                              ),
-                              label: const Text(
-                                'Edit',
-                                style: TextStyle(
-                                  color: Color(0xFF116692),
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color.fromARGB(
-                                  255,
-                                  255,
-                                  197,
-                                  197,
-                                ),
-                                elevation: 2,
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 20,
-                                  vertical: 8,
-                                ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                              ),
-                            )
-                          else
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                ElevatedButton.icon(
-                                  onPressed:
-                                      _isUpdating ? null : _onSavePressed,
-                                  icon:
-                                      _isUpdating
-                                          ? const SizedBox(
-                                            width: 18,
-                                            height: 18,
-                                            child: CircularProgressIndicator(
-                                              strokeWidth: 2,
-                                              color: Color(0xFF116692),
-                                            ),
-                                          )
-                                          : const Icon(
-                                            Icons.save,
-                                            size: 18,
-                                            color: Color(0xFF116692),
-                                          ),
-                                  label: Text(
-                                    _isUpdating ? 'Saving...' : 'Save',
-                                    style: const TextStyle(
-                                      color: Color(0xFF116692),
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.green[100],
-                                    elevation: 2,
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 20,
-                                      vertical: 8,
-                                    ),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(20),
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(width: 10),
-                                ElevatedButton.icon(
-                                  onPressed: _isUpdating ? null : _onCancelEdit,
-                                  icon: const Icon(
-                                    Icons.cancel,
-                                    size: 18,
-                                    color: Colors.red,
-                                  ),
-                                  label: const Text(
-                                    'Cancel',
-                                    style: TextStyle(
-                                      color: Colors.red,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.red[100],
-                                    elevation: 2,
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 20,
-                                      vertical: 8,
-                                    ),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(20),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-
+                         
                           const SizedBox(height: 16),
                           Text(
                             _isEditing

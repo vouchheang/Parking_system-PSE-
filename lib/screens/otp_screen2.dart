@@ -124,7 +124,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
 
         // Navigate to HomeScreen and remove all previous routes
         Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (context) => const HomeScreen('0990573d-7941-486c-bc3c-537dd0661bc9')),
+          MaterialPageRoute(builder: (context) => const HomeScreen()),
           (Route<dynamic> route) => false,
         );
       } else {

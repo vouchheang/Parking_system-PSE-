@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:parking_system/screens/intro_screen.dart';
+import 'package:parking_system/screens/select_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -13,9 +13,13 @@ class _SplashScreenState extends State<SplashScreen> {
   void initState() {
     super.initState();
     Future.delayed(Duration(seconds: 1), () {
+
+    
+
+
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => WhoAreYouScreen(userId: '',)),
+        MaterialPageRoute(builder: (context) => AuthSelectionScreen()),
       );
     });
   }

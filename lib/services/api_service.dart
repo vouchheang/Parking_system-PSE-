@@ -80,99 +80,97 @@ class ApiService {
     }
   }
 
+  Future<UserpModel> registerUser({
+    required String fullname,
+    required String email,
+    required String password,
+    required String phonenumber,
+    required String idcard,
+    required String vehicletype,
+    required String licenseplate,
+    required XFile? profilephoto,
+    required XFile? vehiclephoto,
+  }) async {
+    final url = Uri.parse('$baseUrl/api/register');
 
-Future<UserpModel> registerUser({
-  required String fullname,
-  required String email,
-  required String password,
-  required String phonenumber,
-  required String idcard,
-  required String vehicletype,
-  required String licenseplate,
-  required XFile? profilephoto,
-  required XFile? vehiclephoto,
-}) async {
-  final url = Uri.parse('$baseUrl/api/register');
+    try {
+      // Upload images to Cloudinary and get URLs
+      String? profilePhotoUrl;
+      String? vehiclePhotoUrl;
 
-  try {
-    // Upload images to Cloudinary and get URLs
-    String? profilePhotoUrl;
-    String? vehiclePhotoUrl;
-
-    if (profilephoto != null) {
-      profilePhotoUrl = await uploadImageToCloudinary(profilephoto);
-    }
-    if (vehiclephoto != null) {
-      vehiclePhotoUrl = await uploadImageToCloudinary(vehiclephoto);
-    }
-
-    // Prepare the request body with Cloudinary URLs
-    final body = {
-      'fullname': fullname,
-      'email': email,
-      'password': password,
-      'phonenumber': phonenumber,
-      'idcard': idcard,
-      'vehicletype': vehicletype.toLowerCase(),
-      'licenseplate': licenseplate,
-      'profilephoto': profilePhotoUrl ?? '',
-      'vehiclephoto': vehiclePhotoUrl ?? '',
-    };
-
-    // Only log the URL for debugging, not sensitive data
-    print('Sending registration request to: $url');
-
-    final response = await http.post(
-      url,
-      headers: {
-        'Authorization': 'Bearer $staticToken',
-        'Content-Type': 'application/json',
-      },
-      body: jsonEncode(body),
-    );
-
-    print('Response Status: ${response.statusCode}');
-
-    if (response.statusCode == 200 || response.statusCode == 201) {
-      final jsonResponse = jsonDecode(response.body);
-      
-      // Handle token storage if present
-      if (jsonResponse['access_token'] != null) {
-        await _saveTokenToStorage(jsonResponse['access_token']);
+      if (profilephoto != null) {
+        profilePhotoUrl = await uploadImageToCloudinary(profilephoto);
       }
-      
-      // Log success without exposing sensitive data
-      if (jsonResponse['success'] == true) {
-        print('Registration successful for user: $fullname');
+      if (vehiclephoto != null) {
+        vehiclePhotoUrl = await uploadImageToCloudinary(vehiclephoto);
       }
-      
-      final data = jsonResponse['data'] ?? jsonResponse;
-      return UserpModel.fromJson(data);
-    } else {
-      throw Exception('Failed to register user: ${response.statusCode}');
-    }
-  } catch (e) {
-    print('Registration error: $e');
-    throw Exception('Error during registration: $e');
-  }
-}
 
-// Private method to save token to SharedPreferences
-Future<void> _saveTokenToStorage(String token) async {
-  try {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('auth_token', token);
-    print('Registration: Token saved to SharedPreferences successfully');
-  } catch (e) {
-    print('Registration: Error saving token to SharedPreferences: $e');
+      // Prepare the request body with Cloudinary URLs
+      final body = {
+        'fullname': fullname,
+        'email': email,
+        'password': password,
+        'phonenumber': phonenumber,
+        'idcard': idcard,
+        'vehicletype': vehicletype.toLowerCase(),
+        'licenseplate': licenseplate,
+        'profilephoto': profilePhotoUrl ?? '',
+        'vehiclephoto': vehiclePhotoUrl ?? '',
+      };
+
+      // Only log the URL for debugging, not sensitive data
+      print('Sending registration request to: $url');
+
+      final response = await http.post(
+        url,
+        headers: {
+          'Authorization': 'Bearer token',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode(body),
+      );
+
+      print('Response Status: ${response.statusCode}');
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final jsonResponse = jsonDecode(response.body);
+
+        // Handle token storage if present
+        if (jsonResponse['access_token'] != null) {
+          await _saveTokenToStorage(jsonResponse['access_token']);
+        }
+
+        // Log success without exposing sensitive data
+        if (jsonResponse['success'] == true) {
+          print('Registration successful for user: $fullname');
+        }
+
+        final data = jsonResponse['data'] ?? jsonResponse;
+        final userData = UserpModel.fromJson(data);
+        await _storageService.saveProfileLocally(userData.toJson());
+
+        return userData;
+      } else {
+        throw Exception('Failed to register user: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Registration error: $e');
+      throw Exception('Error during registration: $e');
+    }
   }
-}
+
+  // Private method to save token to SharedPreferences
+  Future<void> _saveTokenToStorage(String token) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('auth_token', token);
+      print('Registration: Token saved to SharedPreferences successfully');
+    } catch (e) {
+      print('Registration: Error saving token to SharedPreferences: $e');
+    }
+  }
 
   Future<String> uploadImageToCloudinary(XFile imageFile) async {
-    final token = await _storageService.getToken(); // Retrieve token
-    if (token == null) {
-      throw Exception('Token not found');
-    }
     final uri = Uri.parse(
       'https://api.cloudinary.com/v1_1/djl0qjlmt/image/upload',
     );
@@ -217,19 +215,17 @@ Future<void> _saveTokenToStorage(String token) async {
     required String email,
     required String password,
   }) async {
-    final StorageService storageService = StorageService();
-
     try {
       final url = Uri.parse('$baseUrl/api/login');
-      final body = jsonEncode({'email': email, 'password': password});
-      print(url);
-      print(body);
-      final response = await http.post(
-        url,
-        body: {'email': email, 'password': password},
-      );
+      final body = {'email': email, 'password': password};
 
-      print('Response Status: ${response.statusCode}');
+      print('POST $url');
+      print('Body: $body');
+
+      final response = await http.post(url, body: body);
+
+      print('Status: ${response.statusCode}');
+      print('Body: ${response.body}');
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final jsonResponse = jsonDecode(response.body);
@@ -237,28 +233,23 @@ Future<void> _saveTokenToStorage(String token) async {
 
         final loginModel = LoginModel.fromJson(data);
 
-        // Store the token using StorageService
-        await storageService.saveToken(loginModel.token);
+        // Save token using StorageService
+        final _storageService = StorageService();
+        await _storageService.saveToken(loginModel.token);
+        await _storageService.saveRole(loginModel.role);
+        await _storageService.saveID(loginModel.id);
 
         return loginModel;
       } else {
-        // More specific error handling
         String errorMessage = 'Login failed';
         try {
           final errorResponse = jsonDecode(response.body);
           errorMessage = errorResponse['message'] ?? errorMessage;
-        } catch (e) {
-          // If response body is not valid JSON, use default message
-        }
-
+        } catch (_) {}
         throw Exception('$errorMessage (Status: ${response.statusCode})');
       }
     } catch (e) {
-      if (e is Exception) {
-        rethrow;
-      }
-      // Handle other types of errors (network issues, etc.)
-      throw Exception('Network error: Unable to connect to server');
+      throw Exception('Network error: ${e.toString()}');
     }
   }
 
@@ -297,9 +288,8 @@ Future<void> _saveTokenToStorage(String token) async {
     final response = await http.put(
       Uri.parse('$baseUrl/api/users/$id'),
       headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
         'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
       },
       body: json.encode(user.toJson()),
     );
@@ -318,12 +308,12 @@ Future<void> _saveTokenToStorage(String token) async {
 
   // Fetch user profile from API
   Future<UserpModel> fetchUserProfile(String id) async {
-    final token = await _storageService.getToken(); // Retrieve token
+    final token = await _storageService.getToken();
     if (token == null) {
       throw Exception('Token not found');
     }
     final response = await http.get(
-      Uri.parse('$baseUrl/api/users/$id'),
+      Uri.parse('$baseUrl/api/users/getbyid/$id'),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
@@ -334,7 +324,6 @@ Future<void> _saveTokenToStorage(String token) async {
       final jsonResponse = jsonDecode(response.body);
       final data = jsonResponse['data'] ?? jsonResponse;
 
-      await _storageService.saveProfileLocally(data);
       return UserpModel.fromJson(data);
     } else {
       throw Exception('Failed to load user: ${response.statusCode}');
@@ -370,31 +359,63 @@ Future<void> _saveTokenToStorage(String token) async {
     }
   }
 
-  // Public method: gets profile, auto-checks for internet
+  // FIXED METHOD: Public method: gets profile, auto-checks for internet
   Future<UserpModel> getUserProfile(String id) async {
-    final token = await _storageService.getToken(); // Retrieve token
+    print('ApiService: Getting user profile for ID: $id');
+
+    final token = await _storageService.getToken();
     if (token == null) {
-      throw Exception('Token not found');
+      print('ApiService: No token found');
+      // Try to get from local storage
+      final localProfile = await _storageService.loadProfileFromLocal();
+      if (localProfile != null) {
+        print('ApiService: Found local profile without token');
+        return localProfile;
+      }
+      throw Exception('No token found and no local profile available');
     }
+
     final isOnline = await checkInternet();
+    print('ApiService: Internet connection: $isOnline');
+
     if (isOnline) {
-      return await fetchUserProfile(id);
+      try {
+        print('ApiService: Fetching from API...');
+        final profile = await fetchUserProfile(id);
+
+        // Save to local storage for offline use
+        await _storageService.saveProfileLocally(profile.toJson());
+        print('ApiService: Profile fetched and saved locally');
+
+        return profile;
+      } catch (e) {
+        print('ApiService: API fetch failed: $e');
+        // If API fails, try local storage as fallback
+        final localProfile = await _storageService.loadProfileFromLocal();
+        if (localProfile != null) {
+          print('ApiService: Using local profile as fallback');
+          return localProfile;
+        }
+        throw Exception('API fetch failed and no local profile: $e');
+      }
     } else {
+      print('ApiService: No internet, using local storage');
       final localProfile = await _storageService.loadProfileFromLocal();
       if (localProfile != null) {
         return localProfile;
       }
-      throw Exception("No offline profile found.");
+      throw Exception("No internet connection and no offline profile found.");
     }
   }
 
-  // Internet check
+  // FIXED METHOD: Internet check without unnecessary token check
   Future<bool> checkInternet() async {
-    final token = await _storageService.getToken(); // Retrieve token
-    if (token == null) {
-      throw Exception('Token not found');
+    try {
+      var result = await Connectivity().checkConnectivity();
+      return result != ConnectivityResult.none;
+    } catch (e) {
+      print('Error checking internet connectivity: $e');
+      return false;
     }
-    var result = await Connectivity().checkConnectivity();
-    return result != ConnectivityResult.none;
   }
 }

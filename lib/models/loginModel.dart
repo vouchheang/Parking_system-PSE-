@@ -8,7 +8,8 @@ class LoginModel {
   final String licenseplate;
   final String? profilephoto;
   final String? vehiclephoto;
-  final String token; // Assuming the API returns a token for authentication
+  final String token;
+  final String role; // 🆕 Add this
 
   LoginModel({
     required this.id,
@@ -21,6 +22,7 @@ class LoginModel {
     this.profilephoto,
     this.vehiclephoto,
     required this.token,
+    required this.role, // 🆕 Include in constructor
   });
 
   factory LoginModel.fromJson(Map<String, dynamic> json) {
@@ -35,6 +37,7 @@ class LoginModel {
       profilephoto: json['profilephoto'],
       vehiclephoto: json['vehiclephoto'],
       token: json['token'] ?? '',
+      role: json['role'] ?? '', // 🆕 Parse from JSON
     );
   }
 
@@ -50,6 +53,7 @@ class LoginModel {
       'profilephoto': profilephoto,
       'vehiclephoto': vehiclephoto,
       'token': token,
+      'role': role, // 🆕 Add to JSON output
     };
   }
 }

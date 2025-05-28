@@ -4,7 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter/foundation.dart' show Uint8List, kIsWeb;
 import 'package:parking_system/screens/home_screen.dart';
+import 'package:parking_system/screens/otp_screen.dart';
 import 'package:parking_system/services/api_service.dart';
+import 'package:parking_system/services/storage_service.dart';
 
 class ParkingRegistrationScreen extends StatefulWidget {
   const ParkingRegistrationScreen({super.key});
@@ -17,6 +19,7 @@ class ParkingRegistrationScreen extends StatefulWidget {
 class _ParkingRegistrationScreenState extends State<ParkingRegistrationScreen> {
   final _formKey = GlobalKey<FormState>();
   final ApiService _apiService = ApiService();
+  final StorageService _storageService = StorageService();
 
   final _fullnameController = TextEditingController();
   final _emailController = TextEditingController();
@@ -64,6 +67,9 @@ class _ParkingRegistrationScreenState extends State<ParkingRegistrationScreen> {
   }
 
   Future<void> _submitForm() async {
+    await _storageService.clearUserProfile();
+    await _storageService.clearToken();
+
     final isFormValid = _formKey.currentState!.validate();
     final areImagesValid = _validateImages();
 
@@ -114,9 +120,8 @@ class _ParkingRegistrationScreenState extends State<ParkingRegistrationScreen> {
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(
               builder:
-                  (_) => const HomeScreen(
-                    '',
-                  ), // Replace with your actual HomePage widget
+                  (_) =>
+                      const HomeScreen(), // Replace with your actual HomePage widget
             ),
           );
         }
